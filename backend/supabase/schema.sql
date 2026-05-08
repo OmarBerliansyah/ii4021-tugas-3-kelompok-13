@@ -1,0 +1,43 @@
+create extension if not exists pgcrypto;
+
+create table if not exists public.app_users (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  password_hash text not null,
+  password_salt text not null,
+  public_key text not null,
+  encrypted_private_key text not null,
+  private_key_iv text not null,
+  kdf_salt text not null,
+  key_algorithm text not null default 'ECDH-P-256',
+  key_metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_email text not null references public.app_users(email) on delete cascade,
+  receiver_email text not null references public.app_users(email) on delete cascade,
+  ciphertext text not null,
+  iv text not null,
+  mac text not null,
+  algorithm text not null default 'AES-256-CTR',
+  timestamp timestamptz not null default now()
+);
+
+create index if not exists app_users_email_idx on public.app_users(email);
+create index if not exists messages_sender_receiver_timestamp_idx
+  on public.messages(sender_email, receiver_email, timestamp);
+create index if not exists messages_receiver_sender_timestamp_idx
+  on public.messages(receiver_email, sender_email, timestamp);
+
+alter table public.app_users enable row level security;
+alter table public.messages enable row level security;
+
+revoke all on table public.app_users from anon, authenticated;
+revoke all on table public.messages from anon, authenticated;
+
+grant select, insert, update, delete on table public.app_users to service_role;
+grant select, insert, update, delete on table public.messages to service_role;
+grant usage, select on all sequences in schema public to service_role;
