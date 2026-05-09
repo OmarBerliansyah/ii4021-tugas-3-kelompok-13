@@ -26,6 +26,13 @@ export type AppUserRow = {
   updated_at: string
 }
 
+export type ConversationRow = {
+  id: string
+  user_a_email: string
+  user_b_email: string
+  created_at: string
+}
+
 export type MessageRow = {
   id: string
   sender_email: string

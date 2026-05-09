@@ -1,6 +1,7 @@
 import { HttpError } from '../lib/http-error'
 import { supabaseRest } from '../db/supabase'
 import type { MessageRow } from '../types/app'
+import { getOrCreateConversation } from './conversations'
 import { findUserByEmail } from './users'
 
 type CreateMessageInput = {
@@ -18,6 +19,16 @@ export const createMessage = async (input: CreateMessageInput) => {
   if (!receiver) {
     throw new HttpError(404, 'receiver is not registered')
   }
+
+  if (input.senderEmail === input.receiverEmail) {
+    throw new HttpError(400, 'receiver must be different from sender')
+  }
+
+  if (input.algorithm !== undefined && input.algorithm !== 'AES-256-CTR') {
+    throw new HttpError(400, 'algorithm must be AES-256-CTR')
+  }
+
+  await getOrCreateConversation(input.senderEmail, input.receiverEmail)
 
   const rows = await supabaseRest.insert<MessageRow>('messages', {
     sender_email: input.senderEmail,
