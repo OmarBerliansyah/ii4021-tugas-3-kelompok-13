@@ -1,7 +1,8 @@
 # II4021 Secure Chat Backend
 
 Backend Hono untuk aplikasi chat terenkripsi. Server menangani autentikasi,
-custom JWT, daftar kontak, dan penyimpanan pesan terenkripsi di Supabase.
+custom JWT, daftar kontak, penyimpanan pesan terenkripsi di Supabase, dan
+pengiriman pesan secara real-time via WebSocket.
 Operasi ECDH, HKDF, AES, dan dekripsi pesan tetap dilakukan di client.
 
 ## Tech Stack
@@ -113,6 +114,55 @@ Create message body:
 Server hanya menyimpan ciphertext, IV, MAC, dan metadata. Plaintext tidak pernah
 dikirim ke backend.
 
-Untuk menyesuaikan rancangan client-side crypto, pesan diasumsikan memakai
-`AES-256-CTR` dan `HMAC-SHA256` dengan pola Encrypt-then-MAC. MAC dihitung dan
-diverifikasi di frontend karena backend tidak memegang kunci komunikasi.
+Varian AES-256 (CTR, CBC, dsb.) dan penggunaan MAC bersifat opsional dan
+ditentukan oleh client. MAC dihitung dan diverifikasi di frontend karena backend
+tidak memegang kunci komunikasi.
+
+### WebSocket — Real-time Push
+
+- `GET /ws?token=<jwt>`
+
+Membuka koneksi WebSocket yang persisten untuk menerima pesan secara real-time.
+Autentikasi menggunakan JWT yang sama dengan REST API, namun dikirim via query
+parameter (browser `WebSocket` API tidak mendukung header kustom saat upgrade).
+
+Setelah koneksi terbuka, server mengirimkan:
+
+```json
+{ "type": "connected", "email": "alice@example.com" }
+```
+
+Setiap kali ada pesan masuk dari pengguna lain, server mendorong:
+
+```json
+{
+  "type": "new_message",
+  "message": {
+    "id": "...",
+    "sender_email": "bob@example.com",
+    "receiver_email": "alice@example.com",
+    "ciphertext": "...",
+    "iv": "...",
+    "mac": "...",
+    "algorithm": "AES-256-CTR",
+    "timestamp": "2026-05-09T10:00:00.000Z"
+  }
+}
+```
+
+Client dapat mengirim heartbeat untuk menjaga koneksi tetap hidup:
+
+```json
+{ "type": "ping" }
+```
+
+Server akan membalas dengan `{ "type": "pong" }`.
+
+Alur integrasi di frontend:
+
+```
+1. Login → terima JWT
+2. Buka WS: new WebSocket(`ws://localhost:3000/ws?token=${jwt}`)
+3. Dengarkan event "new_message" → dekripsi di client → tampilkan ke UI
+4. Kirim pesan tetap via POST /messages (WS hanya untuk push ke penerima)
+```

@@ -1,5 +1,6 @@
 import { HttpError } from '../lib/http-error'
 import { supabaseRest } from '../db/supabase'
+import { pushToUser } from '../lib/connections'
 import type { MessageRow } from '../types/app'
 import { getOrCreateConversation } from './conversations'
 import { findUserByEmail } from './users'
@@ -24,10 +25,6 @@ export const createMessage = async (input: CreateMessageInput) => {
     throw new HttpError(400, 'receiver must be different from sender')
   }
 
-  if (input.algorithm !== undefined && input.algorithm !== 'AES-256-CTR') {
-    throw new HttpError(400, 'algorithm must be AES-256-CTR')
-  }
-
   await getOrCreateConversation(input.senderEmail, input.receiverEmail)
 
   const rows = await supabaseRest.insert<MessageRow>('messages', {
@@ -36,11 +33,15 @@ export const createMessage = async (input: CreateMessageInput) => {
     ciphertext: input.ciphertext,
     iv: input.iv,
     mac: input.mac,
-    algorithm: input.algorithm ?? 'AES-256-CTR',
+    algorithm: input.algorithm ?? 'AES-256',
     timestamp: input.timestamp ?? new Date().toISOString(),
   })
 
-  return rows[0]
+  const message = rows[0]
+
+  pushToUser(input.receiverEmail, { type: 'new_message', message })
+
+  return message
 }
 
 export const listConversationMessages = async (

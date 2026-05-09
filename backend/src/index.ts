@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth'
 import { conversationRoutes } from './routes/conversations'
 import { messageRoutes } from './routes/messages'
 import { userRoutes } from './routes/users'
+import { websocket, wsRoutes } from './routes/websocket'
 import type { AppEnv } from './types/app'
 
 assertSupabaseEnv()
@@ -26,5 +27,9 @@ app.route('/auth', authRoutes)
 app.route('/users', userRoutes)
 app.route('/conversations', conversationRoutes)
 app.route('/messages', messageRoutes)
+app.route('/ws', wsRoutes)
 
-export default app
+export default {
+  fetch: app.fetch,
+  websocket,
+}

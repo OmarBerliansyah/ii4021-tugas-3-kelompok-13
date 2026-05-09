@@ -32,7 +32,7 @@ create table if not exists public.messages (
   ciphertext text not null,
   iv text not null,
   mac text not null,
-  algorithm text not null default 'AES-256-CTR',
+  algorithm text not null default 'AES-256',
   timestamp timestamptz not null default now()
 );
 
