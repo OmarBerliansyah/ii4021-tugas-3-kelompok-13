@@ -1,0 +1,130 @@
+/* frontend/src/styles/AuthForm.css */
+
+.auth-form {
+  /* THE CARD DIMENSIONS FROM FIGMA */
+  width: 420px;
+  height: 540px;
+  background-color: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  
+  /* LAYOUT INSIDE THE CARD */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* This centers the inputs horizontally */
+  justify-content: center; /* This centers the inputs vertically */
+  padding: 40px; /* Breathing room inside the card */
+  box-sizing: border-box;
+}
+
+/* THE 324px INNER CONTENT FROM FIGMA */
+.auth-form h2 {
+  width: 324px;
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: #08060d;
+}
+
+.auth-form .form-group {
+  width: 324px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.auth-form label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #6b6375;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E5E5E5;
+  border-radius: 6px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  color: #08060d;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #aa3bff; /* Your accent color */
+}
+
+.auth-form .submit-button {
+  width: 324px;
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--accent); /* CHANGED TO THE NEW GREEN */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px; /* Matched to your Body font size */
+  font-family: var(--font-inter); /* Matched to Inter */
+  font-weight: 600; /* Matched to Semi Bold */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-form .submit-button:hover {
+  background-color: var(--accent-hover); /* Darker green on hover */
+}
+
+.auth-form .toggle-button {
+  width: 324px;
+  margin-top: 16px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: var(--font-inter);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.auth-form .toggle-button:hover {
+  text-decoration: underline;
+}
+/* Add to the bottom of frontend/src/styles/AuthForm.css */
+
+/* Red border for inputs with errors */
+.auth-form input.input-error {
+  border-color: #ff4444;
+}
+
+.auth-form input.input-error:focus {
+  border-color: #ff4444;
+  outline: 1px solid #ff4444;
+}
+
+/* Red caption text mimicking your Figma design */
+.auth-form .error-caption {
+  font-family: var(--font-inter);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 17px;
+  color: #ff4444;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Ensure the normal default caption looks right too */
+.auth-form .default-caption {
+  font-family: var(--font-inter);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-sub);
+  margin-top: 6px;
+  display: block;
+}
