@@ -1,7 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
-import { env } from '../config/env'
+import { verifyAuthToken } from '../lib/auth-token'
 import { HttpError } from '../lib/http-error'
-import { verify } from '../lib/jwt'
 import type { AppEnv } from '../types/app'
 
 export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
@@ -13,19 +12,7 @@ export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
   }
 
   try {
-    const decoded = verify(match[1], env.jwtPublicKeyPem, {
-      algs: [env.jwtAlg],
-      iss: env.jwtIssuer,
-      aud: env.jwtAudience,
-    })
-
-    const sub = decoded.payload.sub
-    const email = decoded.payload.email
-    if (typeof sub !== 'string' || typeof email !== 'string') {
-      throw new Error('JWT subject or email is missing')
-    }
-
-    c.set('authUser', { id: sub, email })
+    c.set('authUser', verifyAuthToken(match[1]))
     await next()
   } catch (error) {
     throw new HttpError(
