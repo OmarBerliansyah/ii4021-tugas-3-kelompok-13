@@ -2,10 +2,11 @@
   "name": "backend",
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hono/node-server": "^1.11.1",
     "hono": "^4.12.18"
   },
   "devDependencies": {

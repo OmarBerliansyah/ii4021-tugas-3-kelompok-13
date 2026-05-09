@@ -1,3 +1,4 @@
+import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { assertSupabaseEnv } from './config/env'
 import { cors } from './middleware/cors'
@@ -29,7 +30,12 @@ app.route('/conversations', conversationRoutes)
 app.route('/messages', messageRoutes)
 app.route('/ws', wsRoutes)
 
-export default {
+const port = Number(process.env.PORT) || 3000
+console.log(`Server is running on port ${port}`)
+
+serve({
   fetch: app.fetch,
-  websocket,
-}
+  port
+})
+
+export default app
