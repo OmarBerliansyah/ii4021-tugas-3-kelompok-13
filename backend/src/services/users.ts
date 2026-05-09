@@ -17,7 +17,7 @@ export type RegisterUserInput = {
 }
 
 export const findUserByEmail = async (email: string) => {
-  const users = await supabaseRest.select<AppUserRow>('app_users', {
+  const users = await supabaseRest.select<AppUserRow>('users', {
     select: '*',
     email: `eq.${email}`,
     limit: 1,
@@ -27,7 +27,7 @@ export const findUserByEmail = async (email: string) => {
 }
 
 export const createUser = async (input: RegisterUserInput) => {
-  const rows = await supabaseRest.insert<AppUserRow>('app_users', {
+  const rows = await supabaseRest.insert<AppUserRow>('users', {
     email: input.email,
     password_hash: input.passwordHash,
     password_salt: input.passwordSalt,
@@ -44,7 +44,7 @@ export const createUser = async (input: RegisterUserInput) => {
 
 export const listContacts = async (currentEmail: string) =>
   supabaseRest.select<Pick<AppUserRow, 'id' | 'email' | 'public_key' | 'key_algorithm' | 'key_metadata' | 'created_at'>>(
-    'app_users',
+    'users',
     {
       select: PUBLIC_USER_COLUMNS,
       email: `neq.${currentEmail}`,
@@ -54,7 +54,7 @@ export const listContacts = async (currentEmail: string) =>
 
 export const findPublicUserByEmail = async (email: string) => {
   const users = await supabaseRest.select<Pick<AppUserRow, 'id' | 'email' | 'public_key' | 'key_algorithm' | 'key_metadata' | 'created_at'>>(
-    'app_users',
+    'users',
     {
       select: PUBLIC_USER_COLUMNS,
       email: `eq.${email}`,
