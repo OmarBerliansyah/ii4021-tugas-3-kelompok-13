@@ -114,8 +114,13 @@ export const verify = (
     throw new Error('JWT subject is invalid')
   }
 
-  if (options.aud !== undefined && payload.aud !== options.aud) {
-    throw new Error('JWT audience is invalid')
+  if (options.aud !== undefined) {
+    const aud = payload.aud
+    const audienceMatches = Array.isArray(aud) ? aud.includes(options.aud) : aud === options.aud
+    
+    if (!audienceMatches) {
+      throw new Error('JWT audience is invalid')
+    }
   }
 
   if (options.jti !== undefined && payload.jti !== options.jti) {
