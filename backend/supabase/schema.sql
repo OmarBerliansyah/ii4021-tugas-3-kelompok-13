@@ -47,6 +47,12 @@ create index if not exists messages_receiver_sender_timestamp_idx
   on public.messages(receiver_email, sender_email, timestamp);
 
 alter table public.users enable row level security;
+alter table public.messages enable row level security;
+
+revoke all on table public.users from anon, authenticated;
+revoke all on table public.messages from anon, authenticated;
+
+grant select, insert, update, delete on table public.users to service_role;
 alter table public.conversations enable row level security;
 alter table public.messages enable row level security;
 

@@ -13,6 +13,8 @@ type RegisterInput = {
   kdfSalt: string
   keyAlgorithm?: string
   keyMetadata?: Record<string, unknown>
+  passwordHash?: string
+  passwordSalt?: string
 }
 
 export const register = async (input: RegisterInput) => {
@@ -21,7 +23,20 @@ export const register = async (input: RegisterInput) => {
     throw new HttpError(409, 'email is already registered')
   }
 
-  const { hash, salt } = hashPassword(input.password)
+  let hash: string
+  let salt: string
+  
+  if (input.passwordHash && input.passwordSalt) {
+    hash = input.passwordHash
+    salt = input.passwordSalt
+  } else if (input.password) {
+    const result = hashPassword(input.password)
+    hash = result.hash
+    salt = result.salt
+  } else {
+    throw new HttpError(400, 'password or passwordHash is required')
+  }
+
   const user = await createUser({
     email: input.email,
     passwordHash: hash,
@@ -44,7 +59,14 @@ export const register = async (input: RegisterInput) => {
 
 export const login = async (email: string, password: string) => {
   const user = await findUserByEmail(email)
-  if (!user || !verifyPassword(password, user.password_hash, user.password_salt)) {
+  
+  if (!user) {
+    throw new HttpError(401, 'invalid email or password')
+  }
+
+  const isValid = verifyPassword(password, user.password_hash, user.password_salt)
+
+  if (!isValid) {
     throw new HttpError(401, 'invalid email or password')
   }
 
