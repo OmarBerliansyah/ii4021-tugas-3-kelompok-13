@@ -1,0 +1,15 @@
+/* frontend/src/styles/AuthPage.css */
+
+.auth-page-container {
+  /* Take up the full height of the browser window */
+  min-height: 100vh;
+  width: 100%;
+  
+  /* Flexbox to center everything perfectly */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* You can change this to match your app's background color */
+  background-color: #F8F9FA; 
+}
