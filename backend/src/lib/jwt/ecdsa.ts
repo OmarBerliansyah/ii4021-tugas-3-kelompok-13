@@ -1,10 +1,10 @@
+type JwtAlg = keyof typeof sizeByAlg
+
 const sizeByAlg = {
   ES256: 32,
   ES384: 48,
   ES512: 66,
 } as const
-
-type JwtAlg = keyof typeof sizeByAlg
 
 const readLength = (buffer: Buffer, offset: number) => {
   const first = buffer[offset]

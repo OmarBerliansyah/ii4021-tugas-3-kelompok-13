@@ -1,20 +1,8 @@
 import { supabaseRest } from '../db/supabase'
-import type { AppUserRow } from '../types/app'
+import type { AppUserRow, PublicUserInfo, RegisterUserInput } from '../types'
 
 const PUBLIC_USER_COLUMNS =
   'id,email,public_key,key_algorithm,key_metadata,created_at'
-
-export type RegisterUserInput = {
-  email: string
-  passwordHash: string
-  passwordSalt: string
-  publicKey: string
-  encryptedPrivateKey: string
-  privateKeyIv: string
-  kdfSalt: string
-  keyAlgorithm?: string
-  keyMetadata?: Record<string, unknown>
-}
 
 export const findUserByEmail = async (email: string) => {
   const users = await supabaseRest.select<AppUserRow>('users', {
@@ -43,24 +31,18 @@ export const createUser = async (input: RegisterUserInput) => {
 }
 
 export const listContacts = async (currentEmail: string) =>
-  supabaseRest.select<Pick<AppUserRow, 'id' | 'email' | 'public_key' | 'key_algorithm' | 'key_metadata' | 'created_at'>>(
-    'users',
-    {
-      select: PUBLIC_USER_COLUMNS,
-      email: `neq.${currentEmail}`,
-      order: 'email.asc',
-    },
-  )
+  supabaseRest.select<PublicUserInfo>('users', {
+    select: PUBLIC_USER_COLUMNS,
+    email: `neq.${currentEmail}`,
+    order: 'email.asc',
+  })
 
 export const findPublicUserByEmail = async (email: string) => {
-  const users = await supabaseRest.select<Pick<AppUserRow, 'id' | 'email' | 'public_key' | 'key_algorithm' | 'key_metadata' | 'created_at'>>(
-    'users',
-    {
-      select: PUBLIC_USER_COLUMNS,
-      email: `eq.${email}`,
-      limit: 1,
-    },
-  )
+  const users = await supabaseRest.select<PublicUserInfo>('users', {
+    select: PUBLIC_USER_COLUMNS,
+    email: `eq.${email}`,
+    limit: 1,
+  })
 
   return users[0] ?? null
 }

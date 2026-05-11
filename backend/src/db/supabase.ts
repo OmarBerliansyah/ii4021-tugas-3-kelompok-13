@@ -1,13 +1,5 @@
 import { env } from '../config/env'
-
-type QueryParams = Record<string, string | number | boolean | undefined>
-
-type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
-  query?: QueryParams
-  body?: unknown
-  prefer?: string
-}
+import type { QueryParams, RequestOptions } from '../types'
 
 export class SupabaseRestError extends Error {
   constructor(

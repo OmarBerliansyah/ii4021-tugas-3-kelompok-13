@@ -7,7 +7,7 @@ import { authRoutes } from './routes/auth'
 import { conversationRoutes } from './routes/conversations'
 import { messageRoutes } from './routes/messages'
 import { userRoutes } from './routes/users'
-import { websocket, wsRoutes } from './routes/websocket'
+import { setupWebSocket } from './routes/websocket'
 import type { AppEnv } from './types/app'
 
 assertSupabaseEnv()
@@ -28,14 +28,11 @@ app.route('/auth', authRoutes)
 app.route('/users', userRoutes)
 app.route('/conversations', conversationRoutes)
 app.route('/messages', messageRoutes)
-app.route('/ws', wsRoutes)
 
 const port = Number(process.env.PORT) || 3000
 console.log(`Server is running on port ${port}`)
 
-serve({
-  fetch: app.fetch,
-  port
-})
+const server = serve({ fetch: app.fetch, port })
+setupWebSocket(server)
 
 export default app

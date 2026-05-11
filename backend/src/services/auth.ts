@@ -2,20 +2,8 @@ import { env } from '../config/env'
 import { hashPassword, randomBase64Url, verifyPassword } from '../lib/crypto'
 import { HttpError } from '../lib/http-error'
 import { sign } from '../lib/jwt'
+import type { RegisterInput } from '../types'
 import { createUser, findUserByEmail } from './users'
-
-type RegisterInput = {
-  email: string
-  password: string
-  publicKey: string
-  encryptedPrivateKey: string
-  privateKeyIv: string
-  kdfSalt: string
-  keyAlgorithm?: string
-  keyMetadata?: Record<string, unknown>
-  passwordHash?: string
-  passwordSalt?: string
-}
 
 export const register = async (input: RegisterInput) => {
   const existing = await findUserByEmail(input.email)

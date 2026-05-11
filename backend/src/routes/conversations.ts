@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { requireAuth } from '../middleware/auth'
 import { listUserConversations } from '../services/conversations'
-import type { AppEnv } from '../types/app'
+import type { AppEnv } from '../types'
 
 export const conversationRoutes = new Hono<AppEnv>()
 

@@ -1,17 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto'
-import type { JwtAlg } from '../types/app'
-
-type Env = {
-  supabaseUrl: string
-  supabaseServiceRoleKey: string
-  jwtAlg: JwtAlg
-  jwtPrivateKeyPem: string
-  jwtPublicKeyPem: string
-  jwtIssuer: string
-  jwtAudience: string
-  jwtExpiresInSeconds: number
-  port: number
-}
+import type { Env, JwtAlg } from '../types'
 
 const getEnv = (key: string) => process.env[key] ?? ''
 

@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono'
 import { verifyAuthToken } from '../lib/auth-token'
 import { HttpError } from '../lib/http-error'
-import type { AppEnv } from '../types/app'
+import type { AppEnv } from '../types'
 
 export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
   const header = c.req.header('Authorization') ?? ''

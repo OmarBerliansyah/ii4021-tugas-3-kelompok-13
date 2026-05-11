@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { HttpError } from '../lib/http-error'
 import { requireAuth } from '../middleware/auth'
 import { findPublicUserByEmail, listContacts } from '../services/users'
-import type { AppEnv } from '../types/app'
+import type { AppEnv } from '../types'
 
 export const userRoutes = new Hono<AppEnv>()
 

@@ -1,34 +1,7 @@
 import { createSign, createVerify } from 'node:crypto'
-import type { JwtAlg } from '../../types/app'
+import type { JwtAlg, JwtClaims, JwtHeader, JwtPayload, VerifyOptions } from '../../types'
 import { base64UrlDecode, base64UrlEncode, decodeJson, encodeJson } from './base64url'
 import { derToJose, joseToDer } from './ecdsa'
-
-type JwtHeader = {
-  alg: JwtAlg
-  typ: 'JWT'
-}
-
-export type JwtClaims = {
-  iss?: string
-  sub?: string
-  aud?: string
-  exp?: number
-  nbf?: number
-  iat?: number
-  jti?: string
-}
-
-export type JwtPayload = Record<string, unknown>
-
-export type VerifyOptions = {
-  algs?: JwtAlg[]
-  iss?: string
-  sub?: string
-  aud?: string
-  ignoreExp?: boolean
-  ignoreNbf?: boolean
-  jti?: string
-}
 
 const hashByAlg: Record<JwtAlg, string> = {
   ES256: 'SHA256',
