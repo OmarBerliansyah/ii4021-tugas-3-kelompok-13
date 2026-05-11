@@ -33,13 +33,15 @@ export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JS
       setEmail('');
       setPassword('');
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
-      
+    } 
+    catch (err: unknown) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : '';
+
       if (msg.includes('invalid') || msg.includes('password') || msg.includes('email')) {
         setErrors({ password: 'Invalid email or password' });
-      } else {
-        setErrors({ general: err.message || 'Login failed. Please try again.' });
+      } 
+      else {
+        setErrors({ general: err instanceof Error ? err.message : 'Login failed. Please try again.' });
       }
     }
   };

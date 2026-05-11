@@ -1,8 +1,7 @@
-// frontend/src/pages/AuthPage.tsx
 import { useState } from 'react';
 import { LoginForm } from '../components/LoginForm';
 import { RegisterForm } from '../components/RegisterForm';
-import '../styles/AuthPage.css'; // <-- Make sure this is imported!
+import '../styles/AuthPage.css';
 
 export function AuthPage(): React.JSX.Element {
   const [isLogin, setIsLogin] = useState(true);
