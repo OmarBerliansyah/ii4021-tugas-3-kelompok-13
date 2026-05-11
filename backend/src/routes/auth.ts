@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { login, register } from '../services/auth'
-import type { AppEnv } from '../types/app'
+import type { AppEnv } from '../types'
 import { requireAuth } from '../middleware/auth'
 import { requireEmail, requireString } from '../lib/validation'
 

@@ -1,19 +1,9 @@
 import { HttpError } from '../lib/http-error'
 import { supabaseRest } from '../db/supabase'
 import { pushToUser } from '../lib/connections'
-import type { MessageRow } from '../types/app'
+import type { CreateMessageInput, MessageRow } from '../types'
 import { getOrCreateConversation } from './conversations'
 import { findUserByEmail } from './users'
-
-type CreateMessageInput = {
-  senderEmail: string
-  receiverEmail: string
-  ciphertext: string
-  iv: string
-  mac: string
-  algorithm?: string
-  timestamp?: string
-}
 
 export const createMessage = async (input: CreateMessageInput) => {
   const receiver = await findUserByEmail(input.receiverEmail)
@@ -44,10 +34,7 @@ export const createMessage = async (input: CreateMessageInput) => {
   return message
 }
 
-export const listConversationMessages = async (
-  currentEmail: string,
-  contactEmail: string,
-) => {
+export const listConversationMessages = async (currentEmail: string, contactEmail: string) => {
   const [sent, received] = await Promise.all([
     supabaseRest.select<MessageRow>('messages', {
       select: '*',

@@ -1,15 +1,13 @@
 import { SupabaseRestError, supabaseRest } from '../db/supabase'
 import { HttpError } from '../lib/http-error'
-import type { ConversationRow } from '../types/app'
+import type { ConversationRow } from '../types'
 
 export const normalizeConversationUsers = (emailA: string, emailB: string) => {
   if (emailA === emailB) {
     throw new HttpError(400, 'conversation users must be different')
   }
 
-  return emailA < emailB
-    ? { userAEmail: emailA, userBEmail: emailB }
-    : { userAEmail: emailB, userBEmail: emailA }
+  return emailA < emailB ? { userAEmail: emailA, userBEmail: emailB } : { userAEmail: emailB, userBEmail: emailA }
 }
 
 export const findConversation = async (emailA: string, emailB: string) => {
@@ -27,10 +25,7 @@ export const findConversation = async (emailA: string, emailB: string) => {
   return conversations[0] ?? null
 }
 
-export const getOrCreateConversation = async (
-  emailA: string,
-  emailB: string,
-) => {
+export const getOrCreateConversation = async (emailA: string, emailB: string) => {
   const existing = await findConversation(emailA, emailB)
   if (existing) {
     return existing

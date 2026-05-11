@@ -1,6 +1,6 @@
 import { env } from '../config/env'
 import { verify } from './jwt'
-import type { AuthUser } from '../types/app'
+import type { AuthUser } from '../types'
 
 export const verifyAuthToken = (token: string): AuthUser => {
   const decoded = verify(token, env.jwtPublicKeyPem, {
