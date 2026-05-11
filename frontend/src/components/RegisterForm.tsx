@@ -43,11 +43,13 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
       setPassword('');
       setConfirmPassword('');
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      const msg = err.message?.toLowerCase() || '';
+    } 
+    catch (err: unknown) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : '';
       if (msg.includes('email') || msg.includes('registered')) {
         setErrors({ email: 'Email is already registered' });
-      } else {
+      } 
+      else {
         setErrors({ password: 'Registration failed' });
       }
     }

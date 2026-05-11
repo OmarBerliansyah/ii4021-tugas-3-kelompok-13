@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { UserSession, AuthContextType } from '../types/auth';
 import * as authService from '../services/auth';
 import * as cryptoLib from '../lib/crypto';
+import { useCryptoSession } from './CryptoContext';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -11,23 +12,26 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const session = authService.getUserSession();
-    const jwt = authService.getJWT();
+  const { setMyPrivateKey, clearSession } = useCryptoSession();
 
-    if (session && jwt) {
-      authService.verifySession(jwt).then((isValid) => {
+  useEffect(() => {
+    const init = async () => {
+      const session = authService.getUserSession();
+      const jwt = authService.getJWT();
+
+      if (session && jwt) {
+        const isValid = await authService.verifySession(jwt);
         if (isValid) {
           setUser(session);
-        } else {
+        } 
+        else {
           authService.clearJWT();
           authService.clearUserSession();
         }
-        setIsLoading(false);
-      });
-    } else {
+      }
       setIsLoading(false);
-    }
+    };
+    init();
   }, []);
 
   const register = async (email: string, password: string): Promise<void> => {
@@ -36,34 +40,33 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
     try {
       const { publicKey, privateKey } = await cryptoLib.generateKeyPair();
-      
+
       const { publicKeyJwk, encryptedPrivateKey } =
         await cryptoLib.exportKeyMaterialForRegistration(publicKey, privateKey, password);
 
       const registerRequest = {
         email,
-        password: password,
+        password,
         public_key: JSON.stringify(publicKeyJwk),
         encrypted_private_key: encryptedPrivateKey.encryptedPrivateKey,
         private_key_iv: encryptedPrivateKey.privateKeyIv,
         kdf_salt: encryptedPrivateKey.kdfSalt,
-        key_algorithm: 'P-256',
+        key_algorithm: 'X25519' as const,
         key_metadata: {
-          algorithm: 'ECDH',
-          curve: 'P-256',
+          algorithm: 'X25519' as const,
+          privateKeyEncryption: 'PBKDF2-SHA256-AES-256-GCM' as const,
         },
       };
 
-      const response = await authService.register(registerRequest as any) as any;
-      
+      const response = await authService.register(registerRequest);
+
       if (!response.user) {
-        throw new Error(response.error || 'Registration failed on server');
+        throw new Error('Registration failed on server');
       }
-      
+
       await login(email, password);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Registration failed');
       throw err;
     } finally {
       setIsLoading(false);
@@ -75,13 +78,10 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     setError(null);
 
     try {
-      const response = await authService.login({
-        email,
-        password,
-      }) as any;
+      const response = await authService.login({ email, password });
 
       if (!response.token || !response.user) {
-        throw new Error(response.error || 'Login failed');
+        throw new Error('Login failed: invalid server response');
       }
 
       authService.storeJWT(response.token);
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       const session: UserSession = {
         email: response.user.email,
         jwt: response.token,
-        publicKey: JSON.parse(response.user.publicKey) as JsonWebKey,
+        publicKeyJwk: JSON.parse(response.user.publicKey) as JsonWebKey,
         encryptedPrivateKey: response.user.encryptedPrivateKey,
         privateKeyIv: response.user.privateKeyIv,
         kdfSalt: response.user.kdfSalt,
@@ -98,9 +98,16 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
 
       authService.storeUserSession(session);
       setUser(session);
+
+      const unlockedKey = await cryptoLib.decryptPrivateKey(
+        session.encryptedPrivateKey,
+        password,
+        session.kdfSalt,
+        session.privateKeyIv
+      );
+      setMyPrivateKey(unlockedKey);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Login failed');
       throw err;
     } finally {
       setIsLoading(false);
@@ -110,12 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
   const logout = (): void => {
     authService.clearJWT();
     authService.clearUserSession();
+    clearSession();
     setUser(null);
   };
 
-  const clearError = (): void => {
-    setError(null);
-  };
+  const clearError = (): void => setError(null);
 
   const value: AuthContextType = {
     user,
@@ -131,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {

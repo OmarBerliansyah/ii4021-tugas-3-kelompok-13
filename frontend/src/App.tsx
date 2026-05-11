@@ -1,39 +1,23 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { AuthPage } from './pages/AuthPage';
-import { LogoutButton } from './components/LogoutButton';
+import { ChatPage } from './pages/ChatPage';
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [isInitialMount, setIsInitialMount] = useState(true);
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  // Once the first loading check is done, never show the full-screen loader again
-  useEffect(() => {
-    if (isInitialMount && !isLoading) {
-      setIsInitialMount(false);
-    }
-  }, [isLoading, isInitialMount]);
-
-  if (isInitialMount) {
-    return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <p style={{ color: 'var(--text-sub)', fontFamily: 'var(--font-inter)' }}>Loading...</p>
+      </div>
+    );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !user) {
     return <AuthPage />;
   }
 
-  return (
-    <div className="app-container">
-      <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-        <h1 style={{ margin: 0, fontSize: '24px' }}>Crypto Chat</h1>
-        <LogoutButton />
-      </header>
-      
-      <main className="app-content" style={{ padding: '2rem' }}>
-        <p>Welcome to the secure chat!</p>
-      </main>
-    </div>
-  );
+  return <ChatPage currentUser={user} />;
 }
 
 export default App;
