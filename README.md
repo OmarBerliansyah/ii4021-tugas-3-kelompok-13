@@ -166,3 +166,30 @@ Alur integrasi di frontend:
 3. Dengarkan event "new_message" → dekripsi di client → tampilkan ke UI
 4. Kirim pesan tetap via POST /messages (WS hanya untuk push ke penerima)
 ```
+
+### Dockerization
+
+Aplikasi ini juga mencakup konfigurasi Docker Compose untuk menjalankan frontend, backend, dan Caddy (sebagai reverse proxy) secara otomatis.
+
+Jalankan perintah:
+
+```
+docker compose up -d --build
+```
+
+Setelah kontainer berjalan:
+
+* **Frontend** dapat diakses di `http://localhost` (atau `https://localhost` yang dikelola oleh Caddy).
+* **Backend API** berjalan di `http://localhost:3000`.
+
+Untuk melihat log layanan yang sedang berjalan:
+
+```
+docker compose logs -f
+```
+
+Untuk menghentikan semua layanan:
+
+```
+docker compose down
+```
