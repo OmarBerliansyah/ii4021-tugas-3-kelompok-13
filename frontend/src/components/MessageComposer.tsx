@@ -3,9 +3,14 @@ import { useState, useRef } from 'react';
 interface MessageComposerProps {
   onSend: (text: string) => Promise<void>;
   disabled?: boolean;
+  disabledPlaceholder?: string;
 }
 
-export const MessageComposer = ({ onSend, disabled = false }: MessageComposerProps) => {
+export const MessageComposer = ({
+  onSend,
+  disabled = false,
+  disabledPlaceholder = 'Preparing secure session...',
+}: MessageComposerProps) => {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +47,7 @@ export const MessageComposer = ({ onSend, disabled = false }: MessageComposerPro
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled || isSending}
-        placeholder={disabled ? 'Preparing secure session...' : 'Type an encrypted message'}
+        placeholder={disabled ? disabledPlaceholder : 'Type an encrypted message'}
         aria-label="Encrypted message"
       />
       <button onClick={handleSend} disabled={disabled || isSending || !text.trim()}>

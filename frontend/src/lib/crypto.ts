@@ -1,5 +1,20 @@
 import type { KeyPairData, EncryptedKeyMaterial, PasswordHashResult, DerivedKey } from '../types/auth';
 
+function getWebCrypto(): Crypto {
+  if (!globalThis.crypto) {
+    throw new Error('Web Crypto API tidak tersedia di browser ini.');
+  }
+  return globalThis.crypto;
+}
+
+function getSubtleCrypto(): SubtleCrypto {
+  const subtle = globalThis.crypto?.subtle;
+  if (!subtle) {
+    throw new Error('Web Crypto API membutuhkan secure context. Gunakan HTTPS atau localhost.');
+  }
+  return subtle;
+}
+
 function bufferToBase64(buffer: ArrayBuffer | ArrayBufferLike): string {
   const bytes = new Uint8Array(buffer as ArrayBuffer);
   let binary = '';
@@ -19,7 +34,8 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 }
 
 export async function generateKeyPair(): Promise<KeyPairData> {
-  const keyPair = (await crypto.subtle.generateKey({ name: 'X25519' }, false, ['deriveBits'])) as CryptoKeyPair;
+  const subtle = getSubtleCrypto();
+  const keyPair = (await subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
 
   return {
     publicKey: keyPair.publicKey,
@@ -28,26 +44,31 @@ export async function generateKeyPair(): Promise<KeyPairData> {
 }
 
 export async function exportPublicKeyJwk(publicKey: CryptoKey): Promise<JsonWebKey> {
-  return crypto.subtle.exportKey('jwk', publicKey);
+  const subtle = getSubtleCrypto();
+  return subtle.exportKey('jwk', publicKey);
 }
 
 export async function exportPublicKeyRaw(publicKey: CryptoKey): Promise<ArrayBuffer> {
-  return crypto.subtle.exportKey('raw', publicKey);
+  const subtle = getSubtleCrypto();
+  return subtle.exportKey('raw', publicKey);
 }
 
 export async function importPublicKeyFromJwk(jwk: JsonWebKey): Promise<CryptoKey> {
-  return crypto.subtle.importKey('jwk', jwk, { name: 'X25519' }, false, []);
+  const subtle = getSubtleCrypto();
+  return subtle.importKey('jwk', jwk, { name: 'X25519' }, false, []);
 }
 
 export async function deriveKeyFromPassword(
   password: string,
   salt?: Uint8Array
 ): Promise<DerivedKey> {
+  const webCrypto = getWebCrypto();
+  const subtle = getSubtleCrypto();
   if (!salt) {
-    salt = crypto.getRandomValues(new Uint8Array(32));
+    salt = webCrypto.getRandomValues(new Uint8Array(32));
   }
 
-  const passwordKey = await crypto.subtle.importKey(
+  const passwordKey = await subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
     { name: 'PBKDF2' },
@@ -55,7 +76,7 @@ export async function deriveKeyFromPassword(
     ['deriveKey']
   );
 
-  const derivedKey = await crypto.subtle.deriveKey(
+  const derivedKey = await subtle.deriveKey(
     {
       name: 'PBKDF2',
       salt: salt.buffer as ArrayBuffer,
@@ -64,7 +85,7 @@ export async function deriveKeyFromPassword(
     },
     passwordKey,
     { name: 'AES-GCM', length: 256 },
-    true,
+    false,
     ['encrypt', 'decrypt']
   );
 
@@ -75,9 +96,11 @@ export async function deriveKeyFromPassword(
 }
 
 export async function hashPassword(password: string): Promise<PasswordHashResult> {
-  const salt = crypto.getRandomValues(new Uint8Array(32));
+  const webCrypto = getWebCrypto();
+  const subtle = getSubtleCrypto();
+  const salt = webCrypto.getRandomValues(new Uint8Array(32));
 
-  const passwordKey = await crypto.subtle.importKey(
+  const passwordKey = await subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
     { name: 'PBKDF2' },
@@ -85,7 +108,7 @@ export async function hashPassword(password: string): Promise<PasswordHashResult
     ['deriveBits']
   );
 
-  const derivedBits = await crypto.subtle.deriveBits(
+  const derivedBits = await subtle.deriveBits(
     {
       name: 'PBKDF2',
       salt: salt,
@@ -107,13 +130,15 @@ export async function encryptPrivateKey(
   privateKey: CryptoKey,
   password: string
 ): Promise<EncryptedKeyMaterial> {
+  const webCrypto = getWebCrypto();
+  const subtle = getSubtleCrypto();
   const { key: encryptionKey, salt: kdfSalt } = await deriveKeyFromPassword(password);
 
-  const privateKeyJwk = await crypto.subtle.exportKey('jwk', privateKey);
+  const privateKeyJwk = await subtle.exportKey('jwk', privateKey);
   const privateKeyBytes = new TextEncoder().encode(JSON.stringify(privateKeyJwk));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv = webCrypto.getRandomValues(new Uint8Array(12));
 
-  const encryptedData = await crypto.subtle.encrypt(
+  const encryptedData = await subtle.encrypt(
     { name: 'AES-GCM', iv },
     encryptionKey,
     privateKeyBytes
@@ -135,13 +160,14 @@ export async function decryptPrivateKey(
   kdfSaltBase64: string,
   ivBase64: string
 ): Promise<CryptoKey> {
+  const subtle = getSubtleCrypto();
   const kdfSalt = new Uint8Array(base64ToBuffer(kdfSaltBase64));
   const { key: decryptionKey } = await deriveKeyFromPassword(password, kdfSalt);
 
   const iv = new Uint8Array(base64ToBuffer(ivBase64));
   const encryptedData = base64ToBuffer(encryptedPrivateKeyBase64);
 
-  const decryptedData = await crypto.subtle.decrypt(
+  const decryptedData = await subtle.decrypt(
     { name: 'AES-GCM', iv },
     decryptionKey,
     encryptedData
@@ -149,7 +175,7 @@ export async function decryptPrivateKey(
 
   const privateKeyJwk = JSON.parse(new TextDecoder().decode(decryptedData)) as JsonWebKey;
 
-  return crypto.subtle.importKey(
+  return subtle.importKey(
     'jwk',
     privateKeyJwk,
     { name: 'X25519' },

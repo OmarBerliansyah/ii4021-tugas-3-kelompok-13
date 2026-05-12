@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       const jwt = authService.getJWT();
 
       if (session && jwt) {
-        const isValid = await authService.verifySession(jwt);
+        const isValid = await authService.verifySession(jwt).catch(() => false);
         if (isValid) {
           setUser(session);
         } 
@@ -82,9 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       setError(err instanceof Error ? err.message : 'Registration failed');
 
       const rawMessage = err instanceof Error ? err.message : 'Registrasi gagal.';
+      const normalizedMessage = rawMessage.toLowerCase();
       const message =
-        rawMessage.toLowerCase().includes('registered') || rawMessage.toLowerCase().includes('already')
+        normalizedMessage.includes('secure context') || normalizedMessage.includes('web crypto')
+          ? rawMessage
+          : normalizedMessage.includes('extractable') || normalizedMessage.includes('not extractable')
+          ? 'Kesalahan kriptografi: kunci tidak dapat diekspor. Hubungi developer.'
+          : normalizedMessage.includes('registered') || normalizedMessage.includes('already')
           ? 'Email sudah terdaftar.'
+          : normalizedMessage.includes('database')
+          ? 'Gagal menyimpan data ke server. Coba lagi.'
           : 'Registrasi gagal. Coba lagi.';
       pushToast({
         variant: 'error',
@@ -138,8 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
       const rawMessage = err instanceof Error ? err.message : 'Login failed';
+      const normalizedMessage = rawMessage.toLowerCase();
       const friendlyMessage =
-        rawMessage.toLowerCase().includes('invalid')
+        normalizedMessage.includes('secure context') || normalizedMessage.includes('web crypto')
+          ? rawMessage
+          : normalizedMessage.includes('invalid')
           ? 'Email atau password salah.'
           : rawMessage;
       pushToast({
