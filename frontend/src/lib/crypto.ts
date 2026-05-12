@@ -19,7 +19,7 @@ function base64ToBuffer(base64: string): ArrayBuffer {
 }
 
 export async function generateKeyPair(): Promise<KeyPairData> {
-  const keyPair = (await crypto.subtle.generateKey({ name: 'X25519' }, false, ['deriveBits'])) as CryptoKeyPair;
+  const keyPair = (await crypto.subtle.generateKey({ name: 'X25519' }, true, ['deriveBits'])) as CryptoKeyPair;
 
   return {
     publicKey: keyPair.publicKey,
@@ -166,11 +166,9 @@ export async function exportKeyMaterialForRegistration(
 ): Promise<{
   publicKeyJwk: JsonWebKey;
   encryptedPrivateKey: EncryptedKeyMaterial;
-  passwordHash: PasswordHashResult;
 }> {
   const publicKeyJwk = await exportPublicKeyJwk(publicKey);
   const encryptedPrivateKey = await encryptPrivateKey(publicKey, privateKey, password);
-  const passwordHash = await hashPassword(password);
 
-  return { publicKeyJwk, encryptedPrivateKey, passwordHash };
+  return { publicKeyJwk, encryptedPrivateKey };
 }

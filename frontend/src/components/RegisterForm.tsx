@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
+import { useToast } from '../contexts/useToast';
 import { CryptoLoadingModal } from './CryptoLoadingModal';
 import '../styles/AuthForm.css';
 

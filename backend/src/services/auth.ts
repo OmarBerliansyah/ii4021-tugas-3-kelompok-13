@@ -11,19 +11,7 @@ export const register = async (input: RegisterInput) => {
     throw new HttpError(409, 'email is already registered')
   }
 
-  let hash: string
-  let salt: string
-  
-  if (input.passwordHash && input.passwordSalt) {
-    hash = input.passwordHash
-    salt = input.passwordSalt
-  } else if (input.password) {
-    const result = hashPassword(input.password)
-    hash = result.hash
-    salt = result.salt
-  } else {
-    throw new HttpError(400, 'password or passwordHash is required')
-  }
+  const { hash, salt } = hashPassword(input.password)
 
   const user = await createUser({
     email: input.email,

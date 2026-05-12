@@ -7,8 +7,6 @@ export type RegisterInput = {
   kdfSalt: string
   keyAlgorithm?: string
   keyMetadata?: Record<string, unknown>
-  passwordHash?: string
-  passwordSalt?: string
 }
 
 export type RegisterUserInput = {
