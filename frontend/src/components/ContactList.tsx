@@ -28,36 +28,26 @@ export const ContactList = ({ activeContact, onSelectContact }: ContactListProps
   );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
+    <div className="contact-list">
+      <div className="contact-list__search">
         <input
           type="text"
           placeholder="Search contacts"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            border: '1px solid var(--border)',
-            borderRadius: '8px',
-            fontSize: '14px',
-            outline: 'none',
-            background: 'var(--bg)',
-            color: 'var(--text-primary)',
-            boxSizing: 'border-box',
-          }}
+          aria-label="Search contacts"
         />
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="contact-list__body">
         {isLoading && (
-          <p style={{ padding: '16px', color: 'var(--text-sub)', fontSize: '14px', textAlign: 'center' }}>
+          <p className="contact-list__empty">
             Loading contacts...
           </p>
         )}
 
         {!isLoading && filtered.length === 0 && (
-          <p style={{ padding: '16px', color: 'var(--text-sub)', fontSize: '14px', textAlign: 'center' }}>
+          <p className="contact-list__empty">
             No contacts found.
           </p>
         )}
@@ -70,49 +60,16 @@ export const ContactList = ({ activeContact, onSelectContact }: ContactListProps
             <button
               key={contact.email}
               onClick={() => onSelectContact(contact.email)}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '14px 16px',
-                border: 'none',
-                borderBottom: '1px solid var(--border)',
-                background: isActive ? '#f0fdf4' : 'transparent',
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
+              className={`contact-cell ${isActive ? 'contact-cell--active' : ''}`}
             >
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '50%',
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  flexShrink: 0,
-                }}
-              >
+              <div className="contact-cell__avatar">
                 {initial}
               </div>
-              <span
-                style={{
-                  fontSize: '14px',
-                  fontWeight: isActive ? 600 : 400,
-                  color: 'var(--text-primary)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {contact.email}
+              <span className="contact-cell__main">
+                <span className="contact-cell__email">{contact.email}</span>
+                <span className="contact-cell__preview">Secure session starts on open</span>
               </span>
+              <span className="security-chip security-chip--ready">Secure</span>
             </button>
           );
         })}

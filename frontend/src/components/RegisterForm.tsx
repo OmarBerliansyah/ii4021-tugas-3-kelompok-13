@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { CryptoLoadingModal } from './CryptoLoadingModal';
 import '../styles/AuthForm.css';
 
 interface RegisterFormProps {
@@ -64,8 +65,13 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <h2>Create Account</h2>
+    <>
+      <form className="auth-form auth-form--register" onSubmit={handleSubmit}>
+      <div className="auth-form__intro">
+        <span className="auth-form__eyebrow">Client-side keys</span>
+        <h2>Create secure account</h2>
+        <p>Your chat keys are prepared in this browser.</p>
+      </div>
 
       <div className="form-group">
         <label htmlFor="register-email">Email</label>
@@ -117,12 +123,24 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
       </div>
 
       <button type="submit" disabled={isLoading} className="submit-button">
-        {isLoading ? 'Creating Account...' : 'Register'}
+        {isLoading ? 'Preparing account...' : 'Create account'}
       </button>
 
       <button type="button" onClick={onToggleMode} className="toggle-button">
-        Already have an account? Login
+        Already have an account? Log in
       </button>
     </form>
+      {isLoading && (
+        <CryptoLoadingModal
+          headline="Preparing..."
+          steps={[
+            'Generating ECDH key pair',
+            'Deriving password key',
+            'Encrypting private key',
+            'Saving public identity',
+          ]}
+        />
+      )}
+    </>
   );
 }

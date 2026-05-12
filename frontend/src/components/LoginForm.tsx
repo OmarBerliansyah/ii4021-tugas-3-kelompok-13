@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { CryptoLoadingModal } from './CryptoLoadingModal';
 import '../styles/AuthForm.css';
 
 interface LoginFormProps {
@@ -54,8 +55,13 @@ export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JS
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <h2>Welcome Back</h2>
+    <>
+      <form className="auth-form" onSubmit={handleSubmit}>
+      <div className="auth-form__intro">
+        <span className="auth-form__eyebrow">Encrypted web chat</span>
+        <h2>Welcome back</h2>
+        <p>Unlock your secure chat identity.</p>
+      </div>
 
       {errors.general && <div className="error-message">{errors.general}</div>}
 
@@ -90,12 +96,24 @@ export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JS
       </div>
 
       <button type="submit" disabled={isLoading} className="submit-button">
-        {isLoading ? 'Logging in...' : 'Login'}
+        {isLoading ? 'Unlocking session...' : 'Log in'}
       </button>
 
       <button type="button" onClick={onToggleMode} className="toggle-button">
-        Need an account? Register
+        New here? Create account
       </button>
     </form>
+      {isLoading && (
+        <CryptoLoadingModal
+          headline="Verifying..."
+          steps={[
+            'Verifying credentials',
+            'Issuing JWT',
+            'Recovering encrypted private key',
+            'Unlocking local key',
+          ]}
+        />
+      )}
+    </>
   );
 }

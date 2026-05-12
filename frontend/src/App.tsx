@@ -7,8 +7,8 @@ function App() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <p style={{ color: 'var(--text-sub)', fontFamily: 'var(--font-inter)' }}>Loading...</p>
+      <div className="app-loading">
+        <p>Loading session</p>
       </div>
     );
   }

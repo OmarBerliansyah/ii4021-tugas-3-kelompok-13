@@ -1,15 +1,54 @@
-/* frontend/src/styles/AuthPage.css */
-
 .auth-page-container {
-  /* Take up the full height of the browser window */
   min-height: 100vh;
   width: 100%;
-  
-  /* Flexbox to center everything perfectly */
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(360px, 460px);
   align-items: center;
-  
-  /* You can change this to match your app's background color */
-  background-color: #F8F9FA; 
+  justify-content: center;
+  gap: 56px;
+  padding: 48px 28px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0)),
+    var(--bg);
+}
+
+.auth-page-copy {
+  max-width: 440px;
+}
+
+.auth-page-copy__label {
+  display: inline-flex;
+  margin-bottom: 16px;
+  color: var(--security-pending);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-page-copy h1 {
+  margin: 0;
+  max-width: 420px;
+  font-size: 28px;
+  line-height: 36px;
+  color: var(--text-primary);
+}
+
+.auth-page-copy p {
+  max-width: 420px;
+  margin: 14px 0 0;
+  color: var(--text-sub);
+}
+
+@media (max-width: 860px) {
+  .auth-page-container {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 28px;
+    padding: 28px 16px;
+  }
+
+  .auth-page-copy {
+    max-width: 420px;
+    margin: 0 auto;
+  }
 }

@@ -18,11 +18,9 @@ export const MessageComposer = ({ onSend, disabled = false }: MessageComposerPro
     setText('');
     try {
       await onSend(trimmed);
-    } 
-    catch {
+    } catch {
       setText(trimmed);
-    } 
-    finally {
+    } finally {
       setIsSending(false);
       inputRef.current?.focus();
     }
@@ -36,16 +34,7 @@ export const MessageComposer = ({ onSend, disabled = false }: MessageComposerPro
   };
 
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderTop: '1px solid var(--border)',
-        background: '#ffffff',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-      }}
-    >
+    <div className="message-composer">
       <input
         ref={inputRef}
         type="text"
@@ -54,37 +43,10 @@ export const MessageComposer = ({ onSend, disabled = false }: MessageComposerPro
         onKeyDown={handleKeyDown}
         disabled={disabled || isSending}
         placeholder={disabled ? 'Preparing secure session...' : 'Type an encrypted message'}
-        style={{
-          flex: 1,
-          padding: '10px 14px',
-          border: '1px solid var(--border)',
-          borderRadius: '24px',
-          fontSize: '14px',
-          outline: 'none',
-          background: disabled ? 'var(--bg)' : '#fff',
-          color: 'var(--text-primary)',
-          transition: 'border-color 0.2s',
-        }}
-        onFocus={(e) => (e.target.style.borderColor = 'var(--accent)')}
-        onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+        aria-label="Encrypted message"
       />
-      <button
-        onClick={handleSend}
-        disabled={disabled || isSending || !text.trim()}
-        style={{
-          padding: '10px 20px',
-          borderRadius: '24px',
-          border: 'none',
-          background: disabled || !text.trim() ? 'var(--border)' : 'var(--accent)',
-          color: disabled || !text.trim() ? 'var(--text-sub)' : '#fff',
-          fontWeight: 600,
-          fontSize: '14px',
-          cursor: disabled || !text.trim() ? 'default' : 'pointer',
-          transition: 'background 0.2s',
-          flexShrink: 0,
-        }}
-      >
-        {isSending ? '...' : 'Send'}
+      <button onClick={handleSend} disabled={disabled || isSending || !text.trim()}>
+        {isSending ? 'Encrypting' : 'Send'}
       </button>
     </div>
   );

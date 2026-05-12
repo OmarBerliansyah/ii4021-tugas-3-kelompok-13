@@ -23,27 +23,10 @@ export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
 
   if (msg.isLocked) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: isMe ? 'flex-end' : 'flex-start',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '72%',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            background: '#f9fafb',
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '13px', color: '#4b5563' }}>
-            {msg.text}
-          </p>
-          <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', marginTop: '4px' }}>
-            {time} · Terkunci
-          </span>
+      <div className={`message-row ${isMe ? 'message-row--me' : ''}`}>
+        <div className="message-bubble message-bubble--locked">
+          <p>{msg.text}</p>
+          <span>{time} · Terkunci</span>
         </div>
       </div>
     );
@@ -51,71 +34,20 @@ export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
 
   if (msg.isInvalid) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: isMe ? 'flex-end' : 'flex-start',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '70%',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            background: '#fff1f1',
-            border: '1px solid #fecaca',
-          }}
-        >
-          <p style={{ margin: 0, fontSize: '14px', color: '#dc2626' }}>
-             Integritas pesan gagal — pesan tidak dapat didekripsi.
-          </p>
-          <span style={{ fontSize: '11px', color: '#ef4444', display: 'block', marginTop: '4px' }}>
-            {time} · Verifikasi MAC gagal
-          </span>
+      <div className={`message-row ${isMe ? 'message-row--me' : ''}`}>
+        <div className="message-bubble message-bubble--failed">
+          <p>Integrity check failed</p>
+          <span>{time} · MAC invalid</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: isMe ? 'flex-end' : 'flex-start',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '70%',
-          padding: '10px 14px',
-          borderRadius: isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-          background: isMe ? 'var(--accent)' : '#ffffff',
-          border: isMe ? 'none' : '1px solid var(--border)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: '14px',
-            lineHeight: '1.5',
-            color: isMe ? '#ffffff' : 'var(--text-primary)',
-            wordBreak: 'break-word',
-          }}
-        >
-          {msg.text}
-        </p>
-        <span
-          style={{
-            fontSize: '11px',
-            display: 'block',
-            marginTop: '4px',
-            color: isMe ? 'rgba(255,255,255,0.7)' : 'var(--text-sub)',
-            textAlign: 'right',
-          }}
-        >
-          {time}
-        </span>
+    <div className={`message-row ${isMe ? 'message-row--me' : ''}`}>
+      <div className={`message-bubble ${isMe ? 'message-bubble--outgoing' : 'message-bubble--incoming'}`}>
+        <p>{msg.text}</p>
+        <span>{time} · encrypted</span>
       </div>
     </div>
   );
