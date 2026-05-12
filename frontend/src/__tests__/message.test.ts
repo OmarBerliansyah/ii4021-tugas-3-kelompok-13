@@ -151,7 +151,7 @@ describe('Integritas & Autentikasi Pesan (MAC)', () => {
         await expect(decryptMessage(tampered, bobSession, ALICE_EMAIL, BOB_EMAIL)).rejects.toThrow(/Integritas Gagal/);
     });
 
-    it('MAC mengikat konteks pengirim/penerima – swap sender↔receiver ditolak', async () => {
+    it('MAC mengikat konteks pengirim/penerima – swap sender-receiver ditolak', async () => {
         const { aliceSession, bobSession } = await buildSharedFixture();
 
         const payload = await encryptMessage('Pesan dari Alice ke Bob', aliceSession, ALICE_EMAIL, BOB_EMAIL);
