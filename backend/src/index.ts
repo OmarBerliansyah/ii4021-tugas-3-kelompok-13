@@ -24,6 +24,10 @@ app.get('/', (c) => {
   })
 })
 
+app.get('/health', (c) => {
+  return c.json({ status: 'healthy' }, 200)
+})
+
 app.route('/auth', authRoutes)
 app.route('/users', userRoutes)
 app.route('/conversations', conversationRoutes)
