@@ -1,6 +1,4 @@
 import { useAuth } from '../contexts/AuthContext';
-// If you have a specific CSS file for buttons/header, import it here
-// import '../styles/App.css'; 
 
 export function LogoutButton(): React.JSX.Element {
   const { logout, user } = useAuth();
