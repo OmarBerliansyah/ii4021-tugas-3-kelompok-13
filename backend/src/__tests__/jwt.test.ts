@@ -36,20 +36,20 @@ const buildToken = (overrides: Parameters<typeof sign>[1] = {}) =>
     es256Keys.privateKey,
   )
 
-describe('sign – happy path', () => {
-  it('produces a three-part dot-separated string', () => {
+describe('sign – jalur sukses', () => {
+  it('menghasilkan string tiga bagian yang dipisahkan titik', () => {
     const token = buildToken()
     expect(token.split('.')).toHaveLength(3)
   })
 
-  it('encodes the correct algorithm in the header', () => {
+  it('menyandikan algoritma yang benar pada header', () => {
     const token = buildToken()
     const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString())
     expect(header.alg).toBe('ES256')
     expect(header.typ).toBe('JWT')
   })
 
-  it('merges payload and claims; claims take priority over payload keys', () => {
+  it('menggabungkan payload dan claims; claims diprioritaskan dibanding key payload', () => {
     const token = sign(
       { alg: 'ES256', typ: 'JWT' },
       { sub: 'claims-sub' },
@@ -61,7 +61,7 @@ describe('sign – happy path', () => {
     expect(payload.extra).toBe('value')
   })
 
-  it('works with ES384', () => {
+  it('berfungsi dengan ES384', () => {
     const token = sign(
       { alg: 'ES384', typ: 'JWT' },
       { iat: now, exp: now + 60 },
@@ -71,7 +71,7 @@ describe('sign – happy path', () => {
     expect(token.split('.')).toHaveLength(3)
   })
 
-  it('works with ES512', () => {
+  it('berfungsi dengan ES512', () => {
     const token = sign(
       { alg: 'ES512', typ: 'JWT' },
       { iat: now, exp: now + 60 },
@@ -81,17 +81,17 @@ describe('sign – happy path', () => {
     expect(token.split('.')).toHaveLength(3)
   })
 
-  it('works when all claims are omitted', () => {
+  it('berfungsi saat semua claims dihilangkan', () => {
     const token = sign({ alg: 'ES256', typ: 'JWT' }, {}, { data: 'only-payload' }, es256Keys.privateKey)
     expect(token.split('.')).toHaveLength(3)
   })
 })
 
-describe('sign – edge cases', () => {
-  it('throws when alg is not ES256 | ES384 | ES512', () => {
+describe('sign – kasus tepi', () => {
+  it('melempar error saat alg bukan ES256 | ES384 | ES512', () => {
     expect(() =>
       sign(
-        // @ts-expect-error intentional invalid alg
+        // @ts-expect-error alg invalid yang disengaja
         { alg: 'HS256', typ: 'JWT' },
         {},
         {},
@@ -100,7 +100,7 @@ describe('sign – edge cases', () => {
     ).toThrow()
   })
 
-  it('throws when payload cannot be JSON-serialized', () => {
+  it('melempar error saat payload tidak bisa diserialisasi menjadi JSON', () => {
     const circular: Record<string, unknown> = {}
     circular.self = circular
     expect(() =>
@@ -108,13 +108,13 @@ describe('sign – edge cases', () => {
     ).toThrow()
   })
 
-  it('throws or produces an unverifiable token when key curve mismatches algorithm', () => {
+  it('melempar error atau menghasilkan token tak terverifikasi saat kurva key tidak cocok dengan algoritma', () => {
     expect(() =>
       sign({ alg: 'ES256', typ: 'JWT' }, {}, {}, es384Keys.privateKey),
     ).toThrow()
   })
 
-  it('accepts an already-expired exp without throwing', () => {
+  it('menerima exp yang sudah kedaluwarsa tanpa melempar error', () => {
     const token = sign(
       { alg: 'ES256', typ: 'JWT' },
       { exp: now - 3600 },
@@ -124,13 +124,13 @@ describe('sign – edge cases', () => {
     expect(token.split('.')).toHaveLength(3)
   })
 
-  it('throws when private key is an empty string', () => {
+  it('melempar error saat private key berupa string kosong', () => {
     expect(() =>
       sign({ alg: 'ES256', typ: 'JWT' }, {}, {}, ''),
     ).toThrow()
   })
 
-  it('preserves numeric and boolean values in payload', () => {
+  it('mempertahankan nilai numerik dan boolean pada payload', () => {
     const token = sign(
       { alg: 'ES256', typ: 'JWT' },
       {},
@@ -144,8 +144,8 @@ describe('sign – edge cases', () => {
   })
 })
 
-describe('verify – happy path', () => {
-  it('returns decoded header, payload, and signature for a valid token', () => {
+describe('verify – jalur sukses', () => {
+  it('mengembalikan header, payload, dan signature terdekode untuk token valid', () => {
     const token = buildToken()
     const decoded = verify(token, es256Keys.publicKey)
     expect(decoded.header.alg).toBe('ES256')
@@ -155,7 +155,7 @@ describe('verify – happy path', () => {
     expect(typeof decoded.signature).toBe('string')
   })
 
-  it('validates iss, sub, aud, and jti when specified in options', () => {
+  it('memvalidasi iss, sub, aud, dan jti saat ditentukan di opsi', () => {
     const token = buildToken({ iss: 'issuer', sub: 'subject', aud: 'audience', jti: 'unique-id' })
     expect(() =>
       verify(token, es256Keys.publicKey, {
@@ -167,21 +167,21 @@ describe('verify – happy path', () => {
     ).not.toThrow()
   })
 
-  it('ignores exp when ignoreExp is true', () => {
+  it('mengabaikan exp saat ignoreExp bernilai true', () => {
     const token = buildToken({ exp: now - 1 })
     expect(() =>
       verify(token, es256Keys.publicKey, { ignoreExp: true }),
     ).not.toThrow()
   })
 
-  it('ignores nbf when ignoreNbf is true', () => {
+  it('mengabaikan nbf saat ignoreNbf bernilai true', () => {
     const token = buildToken({ nbf: now + 9999 })
     expect(() =>
       verify(token, es256Keys.publicKey, { ignoreNbf: true }),
     ).not.toThrow()
   })
 
-  it('accepts tokens signed with ES384', () => {
+  it('menerima token yang ditandatangani dengan ES384', () => {
     const token = sign(
       { alg: 'ES384', typ: 'JWT' },
       { iat: now, exp: now + 3600 },
@@ -192,7 +192,7 @@ describe('verify – happy path', () => {
     expect(decoded.header.alg).toBe('ES384')
   })
 
-  it('accepts tokens signed with ES512', () => {
+  it('menerima token yang ditandatangani dengan ES512', () => {
     const token = sign(
       { alg: 'ES512', typ: 'JWT' },
       { iat: now, exp: now + 3600 },
@@ -204,64 +204,64 @@ describe('verify – happy path', () => {
   })
 })
 
-describe('verify – edge cases', () => {
-  it('throws when token has fewer than three parts', () => {
+describe('verify – kasus tepi', () => {
+  it('melempar error saat token memiliki kurang dari tiga bagian', () => {
     expect(() => verify('only.two', es256Keys.publicKey)).toThrow(
       'JWT must contain header, payload, and signature',
     )
   })
 
-  it('throws when the signature is manipulated', () => {
+  it('melempar error saat signature dimanipulasi', () => {
     const token = buildToken()
     const parts = token.split('.')
     parts[2] = parts[2].split('').reverse().join('')
     expect(() => verify(parts.join('.'), es256Keys.publicKey)).toThrow()
   })
 
-  it('throws when verified with the wrong public key', () => {
+  it('melempar error saat diverifikasi dengan public key yang salah', () => {
     const token = buildToken()
     expect(() => verify(token, wrongKeys.publicKey)).toThrow('JWT signature is invalid')
   })
 
-  it('throws when token is expired', () => {
+  it('melempar error saat token kedaluwarsa', () => {
     const token = buildToken({ exp: now - 1 })
     expect(() => verify(token, es256Keys.publicKey)).toThrow('JWT is expired')
   })
 
-  it('throws when nbf is in the future', () => {
+  it('melempar error saat nbf berada di masa depan', () => {
     const token = buildToken({ nbf: now + 9999 })
     expect(() => verify(token, es256Keys.publicKey)).toThrow('JWT is not active yet')
   })
 
-  it('throws when alg is not in the allowed list', () => {
+  it('melempar error saat alg tidak ada di daftar yang diizinkan', () => {
     const token = buildToken()
     expect(() =>
       verify(token, es256Keys.publicKey, { algs: ['ES384', 'ES512'] }),
     ).toThrow('JWT alg is not allowed')
   })
 
-  it('throws when iss does not match', () => {
+  it('melempar error saat iss tidak cocok', () => {
     const token = buildToken({ iss: 'real-issuer' })
     expect(() =>
       verify(token, es256Keys.publicKey, { iss: 'wrong-issuer' }),
     ).toThrow('JWT issuer is invalid')
   })
 
-  it('throws when sub does not match', () => {
+  it('melempar error saat sub tidak cocok', () => {
     const token = buildToken({ sub: 'user-1' })
     expect(() =>
       verify(token, es256Keys.publicKey, { sub: 'user-2' }),
     ).toThrow('JWT subject is invalid')
   })
 
-  it('throws when aud does not match', () => {
+  it('melempar error saat aud tidak cocok', () => {
     const token = buildToken({ aud: 'app' })
     expect(() =>
       verify(token, es256Keys.publicKey, { aud: 'other-app' }),
     ).toThrow('JWT audience is invalid')
   })
 
-  it('accepts aud claim as an array containing the expected audience', () => {
+  it('menerima claim aud sebagai array yang memuat audience yang diharapkan', () => {
     const token = sign(
       { alg: 'ES256', typ: 'JWT' },
       { iat: now, exp: now + 3600 },
@@ -271,7 +271,7 @@ describe('verify – edge cases', () => {
     expect(() => verify(token, es256Keys.publicKey, { aud: 'app' })).not.toThrow()
   })
 
-  it('throws when aud is an array that does not contain the expected audience', () => {
+  it('melempar error saat aud berupa array yang tidak memuat audience yang diharapkan', () => {
     const token = sign(
       { alg: 'ES256', typ: 'JWT' },
       { iat: now, exp: now + 3600 },
@@ -283,14 +283,14 @@ describe('verify – edge cases', () => {
     ).toThrow('JWT audience is invalid')
   })
 
-  it('throws when jti does not match', () => {
+  it('melempar error saat jti tidak cocok', () => {
     const token = buildToken({ jti: 'original-jti' })
     expect(() =>
       verify(token, es256Keys.publicKey, { jti: 'different-jti' }),
     ).toThrow('JWT ID is invalid')
   })
 
-  it('throws when the header segment is not valid JSON', () => {
+  it('melempar error saat segmen header bukan JSON yang valid', () => {
     const badHeader = Buffer.from('not-json!!!').toString('base64url')
     const token = buildToken()
     const parts = token.split('.')
@@ -299,7 +299,7 @@ describe('verify – edge cases', () => {
     ).toThrow('JWT contains invalid JSON')
   })
 
-  it('throws when the payload segment is not valid JSON', () => {
+  it('melempar error saat segmen payload bukan JSON yang valid', () => {
     const badPayload = Buffer.from('not-json!!!').toString('base64url')
     const token = buildToken()
     const parts = token.split('.')
@@ -308,7 +308,7 @@ describe('verify – edge cases', () => {
     ).toThrow('JWT contains invalid JSON')
   })
 
-  it('throws when any segment is empty', () => {
+  it('melempar error saat ada segmen yang kosong', () => {
     const token = buildToken()
     const parts = token.split('.')
     expect(() =>

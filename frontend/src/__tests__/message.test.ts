@@ -65,7 +65,7 @@ describe('ECDH Key Exchange & KDF', () => {
         expect(aliceSession.hmacKey.usages).toContain('verify');
     });
 
-    it('session keys yang identik memungkinkan komunikasi dua arah (cross-decryption)', async () => {
+    it('session keys yang identik memungkinkan komunikasi dua arah', async () => {
         const { aliceSession, bobSession } = await buildSharedFixture();
 
         const msgAlice = 'Halo Bob, ini dari Alice!';
@@ -95,7 +95,7 @@ describe('Enkripsi dan Dekripsi Pesan', () => {
         expect(recovered).toBe(plaintext);
     });
 
-    it('dekripsi gagal jika menggunakan kunci yang salah (Eve tidak dapat membaca)', async () => {
+    it('dekripsi gagal jika menggunakan kunci yang salah (MitM tidak dapat membaca)', async () => {
         const { aliceSession, bobNodeKeys } = await buildSharedFixture();
 
         const eveNodeKeys = generateKeyPairSync('x25519');
@@ -168,7 +168,7 @@ describe('Integritas & Autentikasi Pesan (MAC)', () => {
         await expect(decryptMessage(tampered, bobSession, ALICE_EMAIL, BOB_EMAIL)).rejects.toThrow(/Integritas Gagal/);
     });
 
-    it('timestamp ekuivalen dengan format offset (+00:00) tetap lolos validasi MAC', async () => {
+    it('timestamp ekuivalen dengan format offset tetap lolos validasi MAC', async () => {
         const { aliceSession, bobSession } = await buildSharedFixture();
 
         const payload = await encryptMessage('Pesan valid dengan timestamp yang dinormalisasi', aliceSession, ALICE_EMAIL, BOB_EMAIL);
