@@ -36,7 +36,7 @@ const buildToken = (overrides: Parameters<typeof sign>[1] = {}) =>
     es256Keys.privateKey,
   )
 
-describe('sign – jalur sukses', () => {
+describe('sign – happy path', () => {
   it('menghasilkan string tiga bagian yang dipisahkan titik', () => {
     const token = buildToken()
     expect(token.split('.')).toHaveLength(3)
@@ -87,7 +87,7 @@ describe('sign – jalur sukses', () => {
   })
 })
 
-describe('sign – kasus tepi', () => {
+describe('sign – edge cases', () => {
   it('melempar error saat alg bukan ES256 | ES384 | ES512', () => {
     expect(() =>
       sign(
@@ -144,7 +144,7 @@ describe('sign – kasus tepi', () => {
   })
 })
 
-describe('verify – jalur sukses', () => {
+describe('verify – happy path', () => {
   it('mengembalikan header, payload, dan signature terdekode untuk token valid', () => {
     const token = buildToken()
     const decoded = verify(token, es256Keys.publicKey)
@@ -204,7 +204,7 @@ describe('verify – jalur sukses', () => {
   })
 })
 
-describe('verify – kasus tepi', () => {
+describe('verify – edge cases', () => {
   it('melempar error saat token memiliki kurang dari tiga bagian', () => {
     expect(() => verify('only.two', es256Keys.publicKey)).toThrow(
       'JWT must contain header, payload, and signature',
