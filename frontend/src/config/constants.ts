@@ -1,6 +1,5 @@
-export const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:3000';
-
-export const WS_BASE_URL =  (import.meta.env.VITE_WS_URL as string | undefined) || API_BASE_URL.replace(/^http/, 'ws');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api';
+export const WS_BASE_URL =  (import.meta.env.VITE_WS_URL as string | undefined) || 'ws://localhost/ws';
 
 export const STORAGE_KEYS = {
   JWT: 'crypto_chat_jwt',
