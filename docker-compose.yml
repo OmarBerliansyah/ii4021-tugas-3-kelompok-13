@@ -1,6 +1,31 @@
 version: '3.8'
 
 services:
+  caddy:
+    image: caddy:latest
+    container_name: secure-chat-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - CADDY_EMAIL=${CADDY_EMAIL:-admin@example.com}
+    restart: unless-stopped
+    networks:
+      - secure-chat-network
+    depends_on:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -33,8 +58,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: secure-chat-frontend
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -54,3 +79,5 @@ networks:
 volumes:
   backend-logs:
   frontend-logs:
+  caddy_data:
+  caddy_config:

@@ -2,7 +2,7 @@ const DEV_API_FALLBACK = 'http://localhost:3000';
 const PROD_API_FALLBACK = '/api';
 
 const DEV_WS_FALLBACK = 'ws://localhost:3000';
-const PROD_WS_FALLBACK = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
+const PROD_WS_FALLBACK = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`;
 
 export const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ||

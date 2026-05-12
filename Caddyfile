@@ -1,0 +1,46 @@
+{
+  email {$CADDY_EMAIL:-admin@example.com}
+}
+
+# HTTP - redirect to HTTPS
+:80 {
+  redir https://{host}{uri} permanent
+}
+
+# HTTPS
+:443 {
+  # Frontend
+  @frontend {
+    not path /api/* /ws
+    not path /backend-health
+  }
+  handle @frontend {
+    reverse_proxy frontend:80
+  }
+
+  # API proxy
+  handle /api/* {
+    reverse_proxy backend:3000
+  }
+
+  # WebSocket proxy
+  handle /ws {
+    reverse_proxy backend:3000 {
+      header_up Connection "upgrade"
+      header_up Upgrade "websocket"
+      header_up X-Forwarded-Proto "https"
+    }
+  }
+
+  # Backend health
+  handle /backend-health {
+    reverse_proxy backend:3000 /health
+  }
+
+  # Frontend health
+  handle /health {
+    reverse_proxy frontend:80 /health
+  }
+
+  encode gzip
+}
