@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       const jwt = authService.getJWT();
 
       if (session && jwt) {
-        const isValid = await authService.verifySession(jwt);
+        const isValid = await authService.verifySession(jwt).catch(() => false);
         if (isValid) {
           setUser(session);
         } 

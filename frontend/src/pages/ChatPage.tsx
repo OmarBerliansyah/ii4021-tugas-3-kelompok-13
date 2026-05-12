@@ -19,7 +19,11 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, isSecuring, isSessionReady, error, sendMessage } = useSecureChat(currentUser.email, selectedContact);
+  const { messages, isSecuring, isSessionReady, requiresRelogin, error, sendMessage } = useSecureChat(
+    currentUser.email,
+    selectedContact,
+  );
+  const composerPlaceholder = isSecuring ? 'Preparing secure session...' : requiresRelogin ? 'Login ulang untuk membuka sesi dan mengirim pesan' : 'Secure session unavailable';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,6 +80,15 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
               {error && (
                 <div className="chat-error">
                   {error}
+                  {requiresRelogin && (
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="chat-error__action"
+                    >
+                      Login ulang
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -88,20 +101,7 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
               ))}
 
               {!isSecuring && messages.length === 0 && (
-                <div
-                  style={{
-                    margin: '8px auto',
-                    maxWidth: '420px',
-                    textAlign: 'center',
-                    border: '1px dashed var(--border)',
-                    borderRadius: '10px',
-                    padding: '10px 12px',
-                    color: 'var(--text-sub)',
-                    fontSize: '13px',
-                    lineHeight: 1.45,
-                    background: '#fff',
-                  }}
-                >
+                <div className="chat-empty-hint">
                   Belum ada pesan pada percakapan ini.
                   <br />
                   Kamu bisa kirim pesan dulu, atau tunggu lawan login untuk melanjutkan chat real-time.
@@ -111,7 +111,11 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
               <div ref={messagesEndRef} />
             </div>
 
-            <MessageComposer onSend={sendMessage} disabled={isSecuring || !isSessionReady} />
+            <MessageComposer
+              onSend={sendMessage}
+              disabled={isSecuring || !isSessionReady}
+              disabledPlaceholder={composerPlaceholder}
+            />
 
             {isSecuring && (
               <CryptoLoadingModal
