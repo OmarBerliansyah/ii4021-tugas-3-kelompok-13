@@ -34,5 +34,3 @@ console.log(`Server is running on port ${port}`)
 
 const server = serve({ fetch: app.fetch, port })
 setupWebSocket(server)
-
-export default app
