@@ -35,8 +35,9 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
         iv: msg.iv,
         mac: msg.mac,
         algorithm: msg.algorithm,
+        timestamp: msg.timestamp,
       };
-      const text = await decryptMessage(payload, sessionKeysRef.current);
+      const text = await decryptMessage(payload, sessionKeysRef.current, msg.sender_email, msg.receiver_email);
       return { ...msg, text, isInvalid: false };
     } catch {
       return { ...msg, text: undefined, isInvalid: true };
@@ -145,7 +146,7 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
     if (!sessionKeysRef.current || !contactEmail) return;
 
     try {
-      const encryptedPayload = await encryptMessage(text, sessionKeysRef.current);
+      const encryptedPayload = await encryptMessage(text, sessionKeysRef.current, myEmail, contactEmail);
 
       const { message: saved } = await apiFetch<{ message: Message }>('/messages', {
         method: 'POST',
@@ -155,6 +156,7 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
           iv: encryptedPayload.iv,
           mac: encryptedPayload.mac,
           algorithm: encryptedPayload.algorithm,
+          timestamp: encryptedPayload.timestamp,
         }),
       });
 
