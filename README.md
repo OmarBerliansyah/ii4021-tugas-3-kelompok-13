@@ -5,6 +5,9 @@ custom JWT, daftar kontak, penyimpanan pesan terenkripsi di Supabase, dan
 pengiriman pesan secara real-time via WebSocket.
 Operasi ECDH, HKDF, AES, dan dekripsi pesan tetap dilakukan di client.
 
+## Link Deployment
+https://20.2.249.137.nip.io/
+
 ## Tech Stack
 
 - Bun
