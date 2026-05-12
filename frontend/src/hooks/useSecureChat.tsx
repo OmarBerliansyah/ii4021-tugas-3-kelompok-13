@@ -32,6 +32,12 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
   const wsRef = useRef<WebSocket | null>(null);
   const lastReadyContactRef = useRef<string | null>(null);
   const invalidMessageToastShownRef = useRef(false);
+  const requiresRelogin = Boolean(contactEmail) && !myPrivateKey;
+  const buildWebSocketUrl = useCallback((jwt: string): string => {
+    const wsBase = WS_BASE_URL.replace(/\/+$/, '');
+    const wsEndpoint = wsBase.endsWith('/ws') ? wsBase : `${wsBase}/ws`;
+    return `${wsEndpoint}?token=${encodeURIComponent(jwt)}`;
+  }, []);
 
   const lockMessage = useCallback((msg: Message): Message => {
     return {
@@ -75,7 +81,7 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
       wsRef.current.close();
     }
 
-    const ws = new WebSocket(`${WS_BASE_URL}/ws?token=${jwt}`);
+    const ws = new WebSocket(buildWebSocketUrl(jwt));
     wsRef.current = ws;
 
     ws.onmessage = async (event) => {
@@ -106,7 +112,7 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
     ws.onerror = () => {
       return;
     };
-  }, [contactEmail, myEmail, decryptOne]);
+  }, [contactEmail, myEmail, decryptOne, buildWebSocketUrl]);
 
   useEffect(() => {
     if (!contactEmail) {
@@ -260,5 +266,5 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
     }
   };
 
-  return { messages, isSecuring, isSessionReady, error, sendMessage };
+  return { messages, isSecuring, isSessionReady, requiresRelogin, error, sendMessage };
 };

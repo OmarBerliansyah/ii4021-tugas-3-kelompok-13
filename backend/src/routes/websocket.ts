@@ -54,11 +54,11 @@ export const setupWebSocket = (server: ServerType): void => {
     })
 
     ws.on('close', () => {
-      removeConnection(email)
+      removeConnection(email, ws)
     })
 
     ws.on('error', () => {
-      removeConnection(email)
+      removeConnection(email, ws)
     })
   })
 }

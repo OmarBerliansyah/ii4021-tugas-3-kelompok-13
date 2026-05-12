@@ -305,6 +305,38 @@
   border-radius: 8px;
   font-size: 13px;
   color: var(--security-error);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chat-error__action {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--security-pending);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chat-error__action:hover {
+  background: var(--bg-subtle);
+}
+
+.chat-empty-hint {
+  margin: 8px auto;
+  max-width: 420px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text-sub);
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--card-bg);
 }
 
 .message-row {
