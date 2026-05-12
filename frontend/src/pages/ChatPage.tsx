@@ -31,7 +31,7 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
       <div className="chat-sidebar">
         <div className="chat-sidebar-header">
           <div>
-            <h1 className="chat-sidebar-title">CRYPTALK</h1>
+            <h1 className="chat-sidebar-title">Kelompok 13</h1>
             <p className="chat-sidebar-email">{currentUser.email}</p>
           </div>
           <button onClick={logout} className="chat-logout-btn">
