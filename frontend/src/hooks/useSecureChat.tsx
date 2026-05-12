@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { deriveSessionKeys, encryptMessage, decryptMessage } from '../utils/messageCrypto';
 import type { EncryptedPayload } from '../utils/messageCrypto';
 import { useCryptoSession } from '../contexts/CryptoContext';
-import { useToast } from '../contexts/ToastContext';
+import { useToast } from '../contexts/useToast';
 import { apiFetch, WS_BASE_URL } from '../lib/api';
 import { getJWT } from '../services/auth';
 

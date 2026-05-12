@@ -192,11 +192,9 @@ export async function exportKeyMaterialForRegistration(
 ): Promise<{
   publicKeyJwk: JsonWebKey;
   encryptedPrivateKey: EncryptedKeyMaterial;
-  passwordHash: PasswordHashResult;
 }> {
   const publicKeyJwk = await exportPublicKeyJwk(publicKey);
   const encryptedPrivateKey = await encryptPrivateKey(publicKey, privateKey, password);
-  const passwordHash = await hashPassword(password);
 
-  return { publicKeyJwk, encryptedPrivateKey, passwordHash };
+  return { publicKeyJwk, encryptedPrivateKey };
 }

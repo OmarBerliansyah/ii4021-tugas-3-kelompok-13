@@ -1,26 +1,15 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { ToastContext } from './toast-context';
+import type { ToastInput } from './toast-context';
 import '../styles/Toast.css';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info';
-
-type ToastInput = {
-  title: string;
-  message?: string;
-  variant?: ToastVariant;
-  durationMs?: number;
-};
 
 type ToastItem = ToastInput & {
   id: string;
   variant: ToastVariant;
 };
-
-type ToastContextType = {
-  pushToast: (toast: ToastInput) => void;
-};
-
-const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 const DEFAULT_DURATION_MS = 4200;
 const MAX_TOASTS = 5;
@@ -64,20 +53,12 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
               onClick={() => dismissToast(toast.id)}
               aria-label="Dismiss notification"
             >
-              ×
+              &times;
             </button>
           </div>
         ))}
       </div>
     </ToastContext.Provider>
   );
-};
-
-export const useToast = (): ToastContextType => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used inside ToastProvider');
-  }
-  return context;
 };
 

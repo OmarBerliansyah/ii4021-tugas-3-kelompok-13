@@ -10,25 +10,15 @@ authRoutes.post('/register', async (c) => {
   try {
     const body = await c.req.json()
     const email = requireEmail(body.email)
-    
-    const passwordHash = body.password_hash 
-      ? requireString(body.password_hash, 'password_hash', { min: 16 })
-      : undefined
-    
-    const passwordSalt = body.password_salt
-      ? requireString(body.password_salt, 'password_salt', { min: 8 })
-      : undefined
 
-    const password = passwordHash && passwordSalt 
-      ? undefined 
-      : requireString(body.password, 'password', {
-          min: 8,
-          max: 256,
-        })
+    const password = requireString(body.password, 'password', {
+      min: 8,
+      max: 256,
+    })
 
     const user = await register({
       email,
-      password: password || '',
+      password,
       publicKey: requireString(body.public_key, 'public_key', { min: 16 }),
       encryptedPrivateKey: requireString(
         body.encrypted_private_key,
@@ -47,8 +37,6 @@ authRoutes.post('/register', async (c) => {
         !Array.isArray(body.key_metadata)
           ? body.key_metadata
           : undefined,
-      passwordHash: passwordHash,
-      passwordSalt: passwordSalt,
     })
 
     return c.json({ user }, 201)

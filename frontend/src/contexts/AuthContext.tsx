@@ -4,7 +4,7 @@ import type { UserSession, AuthContextType } from '../types/auth';
 import * as authService from '../services/auth';
 import * as cryptoLib from '../lib/crypto';
 import { useCryptoSession } from './CryptoContext';
-import { useToast } from './ToastContext';
+import { useToast } from './useToast';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
