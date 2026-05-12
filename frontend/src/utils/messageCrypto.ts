@@ -5,6 +5,7 @@ export type EncryptedPayload = {
     iv: string;
     mac: string;
     algorithm: string;
+    timestamp: string;
 }
 
 interface SessionKeys {
@@ -37,27 +38,37 @@ export async function deriveSessionKeys(privateKey: CryptoKey, contactKeyJwk: Js
     return { aesKey, hmacKey };
 }
 
-export async function encryptMessage(message: string, sessionKeys: SessionKeys) : Promise<EncryptedPayload> {
+export async function encryptMessage(message: string, sessionKeys: SessionKeys, senderEmail: string, receiverEmail: string) : Promise<EncryptedPayload> {
     const iv = crypto.getRandomValues(new Uint8Array(16));
+    const timestamp = new Date().toISOString();
 
     const ciphertextBuffer = await crypto.subtle.encrypt({ name: 'AES-CTR', counter: iv, length: 128 }, sessionKeys.aesKey, encodeUtf8(message));
     const ciphertext = arrayBufferToBase64(ciphertextBuffer);
 
     const ivB64 = arrayBufferToBase64(iv.buffer);
-    const macInput = `AES-256-CTR.${ivB64}.${ciphertext}`;
-    const mac = arrayBufferToBase64(await crypto.subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, sessionKeys.hmacKey, encodeUtf8(macInput)));
+    const safeSender = senderEmail.toLowerCase().trim();
+    const safeReceiver = receiverEmail.toLowerCase().trim();
 
-    return { ciphertext, iv: ivB64, mac, algorithm: 'AES-256-CTR' };
-    
+    if (safeSender.includes('|') || safeReceiver.includes('|')) {
+        throw new Error("Karakter tidak valid pada alamat email.");
+    }
+
+    const macInput = ['v1', 'AES-256-CTR', safeSender, safeReceiver, timestamp, ivB64, ciphertext].join('|');
+    const mac = await crypto.subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, sessionKeys.hmacKey, encodeUtf8(macInput));
+
+    return { ciphertext, iv: ivB64, mac: arrayBufferToBase64(mac), algorithm: 'AES-256-CTR', timestamp };
 }
 
-export async function decryptMessage(payload: EncryptedPayload, sessionKeys: SessionKeys) : Promise<string> {
-    const macInput = `${payload.algorithm}.${payload.iv}.${payload.ciphertext}`;
+export async function decryptMessage(payload: EncryptedPayload, sessionKeys: SessionKeys, expectedSender: string, expectedReceiver: string) : Promise<string> {
+    const safeSender = expectedSender.toLowerCase().trim();
+    const safeReceiver = expectedReceiver.toLowerCase().trim();
+
+    const macInput = ['v1', payload.algorithm, safeSender, safeReceiver, payload.timestamp, payload.iv, payload.ciphertext].join('|');
 
     const isValidMac = await crypto.subtle.verify('HMAC', sessionKeys.hmacKey, base64ToArrayBuffer(payload.mac), encodeUtf8(macInput));
 
     if (!isValidMac) {
-        throw new Error("Integritas Tidak Valid: Verifikasi MAC gagal. Pesan telah dimanipulasi.");
+        throw new Error("Integritas Gagal: Pesan dimodifikasi atau salah konteks pengirim/penerima.");
     }
 
     const decryptedBuffer = await crypto.subtle.decrypt(
