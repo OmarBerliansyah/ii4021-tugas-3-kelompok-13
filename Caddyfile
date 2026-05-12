@@ -2,41 +2,42 @@
   email {$CADDY_EMAIL:-admin@example.com}
 }
 
+# HTTP - redirect to HTTPS
 :80 {
-  # Redirect HTTP to HTTPS
-  @http {
-    protocol http
-  }
-  handle @http {
-    redir https://{host}{uri} permanent
-  }
+  redir https://{host}{uri} permanent
 }
 
+# HTTPS
 :443 {
-  # Frontend
-  handle / {
-    reverse_proxy frontend:80
-  }
-
-  # API proxy
-  handle /api/* {
+  # API proxy. handle_path strips /api before forwarding to the Hono backend.
+  handle_path /api/* {
     reverse_proxy backend:3000
   }
 
-  # WebSocket proxy
+  # WebSocket proxy. Keep /ws because the backend upgrade handler matches it.
   handle /ws {
     reverse_proxy backend:3000 {
-      header_uri -X-Forwarded-Path
+      header_up Connection "upgrade"
+      header_up Upgrade "websocket"
+      header_up X-Forwarded-Proto "https"
     }
   }
 
-  # Health endpoints
+  # Backend health
+  handle /backend-health {
+    rewrite * /health
+    reverse_proxy backend:3000
+  }
+
+  # Frontend health
   handle /health {
+    rewrite * /health
     reverse_proxy frontend:80
   }
 
-  handle /backend-health {
-    reverse_proxy backend:3000
+  # Frontend fallback
+  handle {
+    reverse_proxy frontend:80
   }
 
   encode gzip
