@@ -1,19 +1,13 @@
-/* frontend/src/index.css */
-
-/* 1. Import Inter Font from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 :root {
-  /* Colors */
   --text-primary: #191919;
   --text-sub: #8A8A8A;
   --accent: #07C160;
-  --accent-hover: #06ad56; /* Slightly darker for hover states */
-  --bg: #F8F9FA; /* Your page background */
+  --accent-hover: #06ad56;
+  --bg: #F8F9FA;
   --card-bg: #FFFFFF;
   --border: #E5E5E5;
-
-  /* Typography */
   --font-inter: 'Inter', system-ui, sans-serif;
 }
 
@@ -26,11 +20,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* =========================================
-   FIGMA TYPOGRAPHY SPECS
-   ========================================= */
-
-/* TITLE */
 h1, h2, .title {
   font-family: var(--font-inter);
   font-weight: 600;
@@ -40,7 +29,6 @@ h1, h2, .title {
   margin: 0;
 }
 
-/* BODY */
 p, span, input, label, .body-text {
   font-family: var(--font-inter);
   font-weight: 400;
@@ -49,7 +37,6 @@ p, span, input, label, .body-text {
   color: var(--text-primary);
 }
 
-/* CAPTION */
 small, .caption {
   font-family: var(--font-inter);
   font-weight: 400;
@@ -58,11 +45,10 @@ small, .caption {
   color: var(--text-sub);
 }
 
-/* BUTTONS & HYPERLINKS */
 a, .hyperlink {
   color: var(--accent);
   text-decoration: none;
-  font-weight: 600; /* Optional: makes links pop */
+  font-weight: 600;
 }
 
 a:hover, .hyperlink:hover {
