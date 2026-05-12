@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import '../styles/AuthForm.css';
 
 interface LoginFormProps {
@@ -9,6 +10,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JSX.Element {
   const { login, isLoading, clearError } = useAuth();
+  const { pushToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -20,11 +22,16 @@ export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JS
     clearError();
 
     const newErrors: typeof errors = {};
-    if (!email.trim()) newErrors.email = 'Email cannot be empty';
-    if (!password.trim()) newErrors.password = 'Password cannot be empty';
+    if (!email.trim()) newErrors.email = 'Email tidak boleh kosong';
+    if (!password.trim()) newErrors.password = 'Password tidak boleh kosong';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      pushToast({
+        variant: 'warning',
+        title: 'Form login belum lengkap',
+        message: 'Periksa kembali email dan password sebelum melanjutkan.',
+      });
       return;
     }
 
@@ -38,10 +45,10 @@ export function LoginForm({ onSuccess, onToggleMode }: LoginFormProps): React.JS
       const msg = err instanceof Error ? err.message.toLowerCase() : '';
 
       if (msg.includes('invalid') || msg.includes('password') || msg.includes('email')) {
-        setErrors({ password: 'Invalid email or password' });
+        setErrors({ password: 'Email atau password salah' });
       } 
       else {
-        setErrors({ general: err instanceof Error ? err.message : 'Login failed. Please try again.' });
+        setErrors({ general: err instanceof Error ? err.message : 'Login gagal. Silakan coba lagi.' });
       }
     }
   };

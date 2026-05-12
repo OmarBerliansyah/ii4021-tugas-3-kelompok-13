@@ -167,4 +167,20 @@ describe('Integritas & Autentikasi Pesan (MAC)', () => {
 
         await expect(decryptMessage(tampered, bobSession, ALICE_EMAIL, BOB_EMAIL)).rejects.toThrow(/Integritas Gagal/);
     });
+
+    it('timestamp ekuivalen dengan format offset (+00:00) tetap lolos validasi MAC', async () => {
+        const { aliceSession, bobSession } = await buildSharedFixture();
+
+        const payload = await encryptMessage('Pesan valid dengan timestamp yang dinormalisasi', aliceSession, ALICE_EMAIL, BOB_EMAIL);
+        const normalizedToOffset = payload.timestamp.replace('Z', '+00:00');
+
+        const recovered = await decryptMessage(
+            { ...payload, timestamp: normalizedToOffset },
+            bobSession,
+            ALICE_EMAIL,
+            BOB_EMAIL
+        );
+
+        expect(recovered).toBe('Pesan valid dengan timestamp yang dinormalisasi');
+    });
 });

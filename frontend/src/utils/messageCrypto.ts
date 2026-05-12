@@ -13,19 +13,24 @@ interface SessionKeys {
     hmacKey: CryptoKey;
 }
 
+const normalizeTimestampForMac = (timestamp: string): string => {
+    const parsed = new Date(timestamp);
+    return Number.isNaN(parsed.getTime()) ? timestamp : parsed.toISOString();
+}
+
 export async function deriveSessionKeys(privateKey: CryptoKey, contactKeyJwk: JsonWebKey, myEmail: string, contactEmail: string) : Promise<SessionKeys> {
     const contactKey = await crypto.subtle.importKey('jwk', contactKeyJwk, { name: 'X25519' }, false, []);
 
     const sharedSecret = await crypto.subtle.deriveBits({ name: 'X25519', public: contactKey }, privateKey, 256);
 
-    const emails = [myEmail.toLowerCase(), contactEmail.toLowerCase()].sort();
+    const emails = [myEmail.toLowerCase().trim(), contactEmail.toLowerCase().trim()].sort();
 
     const saltString = `${emails[0]}|${emails[1]}`;
     const salt = await crypto.subtle.digest('SHA-256', encodeUtf8(saltString));
 
     const info = encodeUtf8('ii4021-crypto-chat-v1');
 
-    const baseKey = await crypto.subtle.importKey('raw', sharedSecret, 'HKDF', false, ['deriveBits']);
+    const baseKey = await crypto.subtle.importKey('raw', new Uint8Array(sharedSecret), 'HKDF', false, ['deriveBits']);
 
     const expandedBits = await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt, info }, baseKey, 512);
 
@@ -54,6 +59,7 @@ export async function encryptMessage(message: string, sessionKeys: SessionKeys, 
     }
 
     const macInput = ['v1', 'AES-256-CTR', safeSender, safeReceiver, timestamp, ivB64, ciphertext].join('|');
+
     const mac = await crypto.subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, sessionKeys.hmacKey, encodeUtf8(macInput));
 
     return { ciphertext, iv: ivB64, mac: arrayBufferToBase64(mac), algorithm: 'AES-256-CTR', timestamp };
@@ -62,8 +68,9 @@ export async function encryptMessage(message: string, sessionKeys: SessionKeys, 
 export async function decryptMessage(payload: EncryptedPayload, sessionKeys: SessionKeys, expectedSender: string, expectedReceiver: string) : Promise<string> {
     const safeSender = expectedSender.toLowerCase().trim();
     const safeReceiver = expectedReceiver.toLowerCase().trim();
+    const normalizedTimestamp = normalizeTimestampForMac(payload.timestamp);
 
-    const macInput = ['v1', payload.algorithm, safeSender, safeReceiver, payload.timestamp, payload.iv, payload.ciphertext].join('|');
+    const macInput = ['v1', payload.algorithm, safeSender, safeReceiver, normalizedTimestamp, payload.iv, payload.ciphertext].join('|');
 
     const isValidMac = await crypto.subtle.verify('HMAC', sessionKeys.hmacKey, base64ToArrayBuffer(payload.mac), encodeUtf8(macInput));
 

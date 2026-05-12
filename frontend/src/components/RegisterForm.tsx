@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import '../styles/AuthForm.css';
 
 interface RegisterFormProps {
@@ -9,6 +10,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): React.JSX.Element {
   const { register, isLoading, clearError } = useAuth();
+  const { pushToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,18 +24,24 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
 
     const newErrors: typeof errors = {};
 
-    if (!email.trim()) newErrors.email = 'Email cannot be empty';
+    if (!email.trim()) newErrors.email = 'Email tidak boleh kosong';
     if (!password.trim()) {
-        newErrors.password = 'Password cannot be empty';
-    } else if (password.length < 8) {
-        newErrors.password = 'Minimum 8 characters';
+        newErrors.password = 'Password tidak boleh kosong';
+    } 
+    else if (password.length < 8) {
+        newErrors.password = 'Minimal 8 karakter';
     }
     if (password !== confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
+        newErrors.confirmPassword = 'Konfirmasi password tidak sama';
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      pushToast({
+        variant: 'warning',
+        title: 'Form registrasi belum valid',
+        message: 'Pastikan email valid, password >= 8 karakter, dan konfirmasi password sama.',
+      });
       return;
     }
 
@@ -47,10 +55,10 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
     catch (err: unknown) {
       const msg = err instanceof Error ? err.message.toLowerCase() : '';
       if (msg.includes('email') || msg.includes('registered')) {
-        setErrors({ email: 'Email is already registered' });
+        setErrors({ email: 'Email sudah terdaftar' });
       } 
       else {
-        setErrors({ password: 'Registration failed' });
+        setErrors({ password: 'Registrasi gagal' });
       }
     }
   };
@@ -89,7 +97,7 @@ export function RegisterForm({ onSuccess, onToggleMode }: RegisterFormProps): Re
         {errors.password ? (
           <span className="error-caption">{errors.password}</span>
         ) : (
-          <span className="default-caption">Minimum 8 characters</span>
+          <span className="default-caption">Minimal 8 karakter</span>
         )}
       </div>
 

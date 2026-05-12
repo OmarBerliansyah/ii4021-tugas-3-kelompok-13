@@ -4,6 +4,7 @@ interface MessageBubbleProps {
     sender_email: string;
     timestamp: string;
     text?: string;
+    isLocked?: boolean;
     isInvalid?: boolean;
   };
   isMe: boolean;
@@ -19,6 +20,34 @@ function formatTime(iso: string): string {
 
 export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
   const time = formatTime(msg.timestamp);
+
+  if (msg.isLocked) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: isMe ? 'flex-end' : 'flex-start',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '72%',
+            padding: '10px 14px',
+            borderRadius: '12px',
+            background: '#f9fafb',
+            border: '1px solid #e5e7eb',
+          }}
+        >
+          <p style={{ margin: 0, fontSize: '13px', color: '#4b5563' }}>
+            {msg.text}
+          </p>
+          <span style={{ fontSize: '11px', color: '#6b7280', display: 'block', marginTop: '4px' }}>
+            {time} · Terkunci
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (msg.isInvalid) {
     return (
@@ -41,7 +70,7 @@ export const MessageBubble = ({ msg, isMe }: MessageBubbleProps) => {
              Integritas pesan gagal — pesan tidak dapat didekripsi.
           </p>
           <span style={{ fontSize: '11px', color: '#ef4444', display: 'block', marginTop: '4px' }}>
-            {time} · MAC invalid
+            {time} · Verifikasi MAC gagal
           </span>
         </div>
       </div>

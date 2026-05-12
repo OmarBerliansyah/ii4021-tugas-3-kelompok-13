@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { deriveSessionKeys, encryptMessage, decryptMessage } from '../utils/messageCrypto';
 import type { EncryptedPayload } from '../utils/messageCrypto';
 import { useCryptoSession } from '../contexts/CryptoContext';
+import { useToast } from '../contexts/ToastContext';
 import { apiFetch, WS_BASE_URL } from '../lib/api';
 import { getJWT } from '../services/auth';
 
@@ -15,20 +16,34 @@ interface Message {
   algorithm: string;
   timestamp: string;
   text?: string;
+  isLocked?: boolean;
   isInvalid?: boolean;
 }
 
 export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
   const { myPrivateKey } = useCryptoSession();
+  const { pushToast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isSecuring, setIsSecuring] = useState(false);
+  const [isSessionReady, setIsSessionReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const sessionKeysRef = useRef<Awaited<ReturnType<typeof deriveSessionKeys>> | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const lastReadyContactRef = useRef<string | null>(null);
+  const invalidMessageToastShownRef = useRef(false);
+
+  const lockMessage = useCallback((msg: Message): Message => {
+    return {
+      ...msg,
+      text: 'Pesan terenkripsi. Login ulang untuk membaca isi pesan.',
+      isLocked: true,
+      isInvalid: false,
+    };
+  }, []);
 
   const decryptOne = useCallback(async (msg: Message): Promise<Message> => {
-    if (!sessionKeysRef.current) return { ...msg, text: undefined, isInvalid: true };
+    if (!sessionKeysRef.current) return lockMessage(msg);
     try {
       const payload: EncryptedPayload = {
         ciphertext: msg.ciphertext,
@@ -40,9 +55,17 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
       const text = await decryptMessage(payload, sessionKeysRef.current, msg.sender_email, msg.receiver_email);
       return { ...msg, text, isInvalid: false };
     } catch {
+      if (!invalidMessageToastShownRef.current) {
+        invalidMessageToastShownRef.current = true;
+        pushToast({
+          variant: 'warning',
+          title: 'Integritas pesan gagal',
+          message: 'Verifikasi integritas gagal. Pesan ditandai tidak valid sebelum proses dekripsi.',
+        });
+      }
       return { ...msg, text: undefined, isInvalid: true };
     }
-  }, []);
+  }, [lockMessage, pushToast]);
 
   const openWebSocket = useCallback(() => {
     const jwt = getJWT();
@@ -86,14 +109,50 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
   }, [contactEmail, myEmail, decryptOne]);
 
   useEffect(() => {
-    if (!contactEmail || !myPrivateKey) return;
+    if (!contactEmail) {
+      sessionKeysRef.current = null;
+      wsRef.current?.close();
+      wsRef.current = null;
+      return;
+    }
+
+    if (!myPrivateKey) {
+      sessionKeysRef.current = null;
+      wsRef.current?.close();
+      wsRef.current = null;
+
+      const loadLockedHistory = async () => {
+        setIsSecuring(true);
+        setIsSessionReady(false);
+        try {
+          const { messages: history } = await apiFetch<{ messages: Message[] }>(
+            `/messages/${contactEmail}`,
+          );
+          if (!history) return;
+          setMessages(history.map(lockMessage));
+          setError(
+            'Sesi kripto lokal belum siap. Riwayat tetap terlihat, tetapi baca isi dan kirim pesan memerlukan login ulang.',
+          );
+        } catch {
+          setMessages([]);
+          setError('Sesi kripto lokal belum siap. Silakan login ulang untuk membuka percakapan aman.');
+        } finally {
+          setIsSecuring(false);
+        }
+      };
+
+      loadLockedHistory();
+      return;
+    }
 
     let active = true;
 
     const establish = async () => {
       setIsSecuring(true);
+      setIsSessionReady(false);
       setError(null);
       setMessages([]);
+      invalidMessageToastShownRef.current = false;
       sessionKeysRef.current = null;
 
       try {
@@ -120,12 +179,32 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
 
         if (active) {
           setMessages(decryptedHistory);
+          setIsSessionReady(true);
+          setError(null);
           openWebSocket();
+          if (lastReadyContactRef.current !== contactEmail) {
+            lastReadyContactRef.current = contactEmail;
+            pushToast({
+              variant: 'success',
+              title: 'Sesi terenkripsi siap',
+              message: `Kanal aman dengan ${contactEmail} sudah aktif.`,
+            });
+          }
         }
       } 
       catch (err) {
         if (active) {
-          setError(err instanceof Error ? err.message : 'Gagal mengamankan sesi obrolan.');
+          setIsSessionReady(false);
+          const rawMessage = err instanceof Error ? err.message : 'Gagal mengamankan sesi obrolan.';
+          const friendlyMessage = rawMessage.toLowerCase().includes('not registered')
+            ? `${contactEmail} belum online atau belum terdaftar. Tunggu sampai pengguna tersebut login.`
+            : 'Sesi terenkripsi gagal disiapkan. Coba lagi beberapa saat.';
+          setError(friendlyMessage);
+          pushToast({
+            variant: 'error',
+            title: 'Sesi terenkripsi gagal',
+            message: friendlyMessage,
+          });
         }
       } 
       finally {
@@ -140,10 +219,18 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [contactEmail, myPrivateKey, myEmail, decryptOne, openWebSocket]);
+  }, [contactEmail, myPrivateKey, myEmail, decryptOne, openWebSocket, pushToast, lockMessage]);
 
   const sendMessage = async (text: string): Promise<void> => {
-    if (!sessionKeysRef.current || !contactEmail) return;
+    if (!contactEmail || !sessionKeysRef.current) {
+      setError('Sesi aman belum siap. Login ulang diperlukan untuk mengirim pesan baru.');
+      pushToast({
+        variant: 'warning',
+        title: 'Login ulang diperlukan',
+        message: 'Riwayat masih bisa dilihat, namun kirim pesan membutuhkan login ulang.',
+      });
+      throw new Error('Secure session is not ready');
+    }
 
     try {
       const encryptedPayload = await encryptMessage(text, sessionKeysRef.current, myEmail, contactEmail);
@@ -163,10 +250,15 @@ export const useSecureChat = (myEmail: string, contactEmail: string | null) => {
       setMessages((prev) => [...prev, { ...saved, text, isInvalid: false }]);
     } 
     catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message.');
+      setError(err instanceof Error ? err.message : 'Pengiriman pesan gagal.');
+      pushToast({
+        variant: 'error',
+        title: 'Gagal mengirim pesan',
+        message: err instanceof Error ? err.message : 'Terjadi kendala saat mengirim pesan.',
+      });
       throw err;
     }
   };
 
-  return { messages, isSecuring, error, sendMessage };
+  return { messages, isSecuring, isSessionReady, error, sendMessage };
 };

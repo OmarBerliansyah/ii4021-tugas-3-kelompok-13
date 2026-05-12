@@ -4,6 +4,7 @@ import type { UserSession, AuthContextType } from '../types/auth';
 import * as authService from '../services/auth';
 import * as cryptoLib from '../lib/crypto';
 import { useCryptoSession } from './CryptoContext';
+import { useToast } from './ToastContext';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -13,6 +14,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
   const [error, setError] = useState<string | null>(null);
 
   const { setMyPrivateKey, clearSession } = useCryptoSession();
+  const { pushToast } = useToast();
 
   useEffect(() => {
     const init = async () => {
@@ -27,12 +29,17 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
         else {
           authService.clearJWT();
           authService.clearUserSession();
+          pushToast({
+            variant: 'warning',
+            title: 'Sesi login berakhir',
+            message: 'Silakan login kembali untuk melanjutkan.',
+          });
         }
       }
       setIsLoading(false);
     };
     init();
-  }, []);
+  }, [pushToast]);
 
   const register = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
@@ -65,8 +72,25 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       }
 
       await login(email, password);
-    } catch (err) {
+      pushToast({
+        variant: 'success',
+        title: 'Registrasi berhasil',
+        message: 'Akun berhasil dibuat.',
+      });
+    } 
+    catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
+
+      const rawMessage = err instanceof Error ? err.message : 'Registrasi gagal.';
+      const message =
+        rawMessage.toLowerCase().includes('registered') || rawMessage.toLowerCase().includes('already')
+          ? 'Email sudah terdaftar.'
+          : 'Registrasi gagal. Coba lagi.';
+      pushToast({
+        variant: 'error',
+        title: 'Registrasi gagal',
+        message,
+      });
       throw err;
     } finally {
       setIsLoading(false);
@@ -106,8 +130,23 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
         session.privateKeyIv
       );
       setMyPrivateKey(unlockedKey);
+      pushToast({
+        variant: 'success',
+        title: 'Login berhasil',
+        message: 'Sesi terenkripsi siap digunakan.',
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
+      const rawMessage = err instanceof Error ? err.message : 'Login failed';
+      const friendlyMessage =
+        rawMessage.toLowerCase().includes('invalid')
+          ? 'Email atau password salah.'
+          : rawMessage;
+      pushToast({
+        variant: 'error',
+        title: 'Login gagal',
+        message: friendlyMessage,
+      });
       throw err;
     } finally {
       setIsLoading(false);
@@ -119,6 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     authService.clearUserSession();
     clearSession();
     setUser(null);
+    pushToast({
+      variant: 'info',
+      title: 'Logout berhasil',
+      message: 'Anda telah keluar dari aplikasi.',
+    });
   };
 
   const clearError = (): void => setError(null);

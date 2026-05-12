@@ -17,10 +17,7 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, isSecuring, error, sendMessage } = useSecureChat(
-    currentUser.email,
-    selectedContact
-  );
+  const { messages, isSecuring, isSessionReady, error, sendMessage } = useSecureChat(currentUser.email, selectedContact);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,8 +42,8 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
         {!selectedContact ? (
           <div className="chat-empty-state">
             <ShieldIcon className="chat-empty-icon" />
-            <p className="chat-empty-title">Select a contact</p>
-            <p className="chat-empty-subtitle">Secure session starts when you open a chat.</p>
+            <p className="chat-empty-title">Pilih kontak</p>
+            <p className="chat-empty-subtitle">Sesi terenkripsi dimulai ketika Anda membuka chat.</p>
           </div>
         ) : (
           <>
@@ -57,7 +54,7 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
               <div className="chat-header-info">
                 <p className="chat-header-name">{selectedContact}</p>
                 <p className={`chat-header-status ${isSecuring ? 'chat-header-status--securing' : 'chat-header-status--ready'}`}>
-                  {isSecuring ? 'Preparing secure session...' : 'Secure session ready'}
+                  {isSecuring ? 'Mempersiapkan sesi terenkripsi...' : isSessionReady ? 'Sesi terenkripsi siap' : 'Sesi terenkripsi tidak siap'}
                 </p>
               </div>
               <div className="chat-header-badge">
@@ -67,7 +64,11 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
             </div>
 
             <div className="chat-messages">
-              {error && <div className="chat-error">{error}</div>}
+              {error && (
+                <div className="chat-error">
+                  {error}
+                </div>
+              )}
 
               {messages.map((msg) => (
                 <MessageBubble
@@ -77,10 +78,31 @@ export const ChatPage = ({ currentUser }: ChatPageProps) => {
                 />
               ))}
 
+              {!isSecuring && messages.length === 0 && (
+                <div
+                  style={{
+                    margin: '8px auto',
+                    maxWidth: '420px',
+                    textAlign: 'center',
+                    border: '1px dashed var(--border)',
+                    borderRadius: '10px',
+                    padding: '10px 12px',
+                    color: 'var(--text-sub)',
+                    fontSize: '13px',
+                    lineHeight: 1.45,
+                    background: '#fff',
+                  }}
+                >
+                  Belum ada pesan pada percakapan ini.
+                  <br />
+                  Kamu bisa kirim pesan dulu, atau tunggu lawan login untuk melanjutkan chat real-time.
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
-            <MessageComposer onSend={sendMessage} disabled={isSecuring || !!error} />
+            <MessageComposer onSend={sendMessage} disabled={isSecuring || !isSessionReady} />
 
             {isSecuring && (
               <div className="chat-securing-overlay">
